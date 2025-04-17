@@ -23,9 +23,6 @@ Route::get('/', [HomeController::class, 'index'])->name('user.index');
 // عرض المنتجات في صفحة الـ Shop مع التصفية والبحث
 Route::get('shop', [ShopController::class, 'index'])->name('user.shop-sidebar');
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('user.product.show');
-Route::post('/cart/add', [ShopController::class, 'addToCart'])->name('cart.add');
-Route::get('/cart', [ShopController::class, 'viewCart'])->name('cart.view');
-Route::delete('/cart/remove/{product_id}', [ShopController::class, 'removeFromCart'])->name('cart.remove');
 
 
 
@@ -39,9 +36,22 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('profile/edit', [ProfileController::class, 'edit'])->name('user.profile.edit');
+    Route::put('/user/profile', [ProfileController::class, 'update'])->name('user.profile.update');
+
+    Route::get('profile/create', [ProfileController::class, 'create'])->name('user.profile.create');
+    Route::post('profile', [ProfileController::class, 'store'])->name('user.profile.store');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('user.profile.destroy');
+    Route::post('/cart/add', [ShopController::class, 'addToCart'])->name('cart.add');
+    Route::get('/cart', [ShopController::class, 'viewCart'])->name('cart.view');
+    Route::delete('/cart/remove/{product_id}', [ShopController::class, 'removeFromCart'])->name('cart.remove');
+    Route::post('/cart/update/{productId}', [ShopController::class, 'updateCart']);
+
+    // صفحة الـ Checkout
+    Route::get('/checkout', [ShopController::class, 'checkout'])->name('user.checkout'); // صفحة عرض الـ checkout
+    Route::post('/checkout', [ShopController::class, 'placeOrder'])->name('user.checkout.placeOrder'); // عند تقديم الطلب
+    Route::get('/checkout-redirect', [ShopController::class, 'checkoutRedirect'])->name('user.checkout.redirect');
 });
 
 require __DIR__.'/auth.php';

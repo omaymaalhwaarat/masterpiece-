@@ -1,5 +1,17 @@
 @include('user.navbar')
 
+@if (session('success'))
+  <div class="position-fixed top-50 start-50 translate-middle" style="z-index: 1055;">
+    <div id="profileToast" 
+         class="toast show text-center border-0" 
+         role="alert" 
+         style="background-color: rgba(255, 255, 255, 0.85); color: #c85c8e; font-family: 'Poppins', sans-serif; font-size: 1.1rem; padding: 1rem 2rem; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1);">
+      {{ session('success') }}
+    </div>
+  </div>
+@endif
+
+
 <section class="hero-section jarallax">
   <img src="images/banner-large-7.jpg" class="jarallax-img">
   <div class="py-5">
@@ -142,6 +154,17 @@
     </div>
   </div>
 </section>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var toastEl = document.getElementById('profileToast');
+    if (toastEl) {
+      setTimeout(() => {
+        toastEl.classList.remove('show');
+        toastEl.remove(); // يختفي بعد كم ثانية
+      }, 2000); // يختفي بعد 4 ثواني
+    }
+  });
+</script>
 
 @include('user.footer')
 

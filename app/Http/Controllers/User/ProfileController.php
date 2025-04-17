@@ -1,60 +1,96 @@
 <?php
+namespace App\Http\Controllers\user;
 
-namespace App\Http\Controllers;
-
-use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Http\RedirectResponse;
+use App\Http\Controllers\Controller;
+use App\Models\Profile;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
-    public function edit(Request $request): View
+
+    // عرض صفحة إنشاء الملف الشخصي
+    public function create()
     {
-        return view('user.my-account', [
-            'user' => $request->user(),
-        ]);
+        return view('user.profile.create');
     }
 
-    /**
-     * Update the user's profile information.
-     */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    // تخزين البيانات في قاعدة البيانات
+    public function store(Request $request)
     {
-        $request->user()->fill($request->validated());
-
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
-        $request->user()->save();
-
-        return Redirect::route('user.my-account')->with('status', 'profile-updated');
-    }
-
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(Request $request): RedirectResponse
-    {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+        // التحقق من صحة البيانات المدخلة
+        $request->validate([
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
+            'zip' => 'required|string|max:10',
+            'phone' => 'required|string|max:15',
+            // 'email' => 'required|string|email|max:255|unique:users,email',
         ]);
 
-        $user = $request->user();
+        // تخزين البيانات في قاعدة البيانات
+        $profile = new Profile();
+        $profile->user_id = auth()->id(); // ربط البروفايل بالمستخدم الحالي
+        $profile->firstname = $request->firstname;
+        $profile->lastname = $request->lastname;
+        $profile->country = $request->country;
+        $profile->address = $request->address;
+        $profile->city = $request->city;
+        $profile->state = $request->state;
+        $profile->zip = $request->zip;
+        $profile->phone = $request->phone;
+        // $profile->email = $request->email;
+        $profile->save();
+        
 
-        Auth::logout();
 
-        $user->delete();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // إعادة التوجيه مع رسالة نجاح
+        return redirect()->intended(route('user.checkout'))->with('success', 'Profile created successfully! Proceeding to checkout.');
+    }
+    // عرض البيانات لتعديلها
+    public function edit()
+    {
+        $user = auth()->user(); // جلب الملف الشخصي للمستخدم
+        $profile = $user->profile; // جلب بيانات الملف الشخصي
+        return view('user.profile.edit', compact('user','profile'));
+    }
 
-        return Redirect::to('/');
+    // تحديث البيانات الخاصة بالملف الشخصي
+    public function update(Request $request)
+    {
+        // التحقق من صحة البيانات
+        $validatedData = $request->validate([
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'country' => 'required|string',
+            'address' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'state' => 'required|string',
+            'zip' => 'required|string|max:10',
+            'phone' => 'required|string|max:15',
+            // 'email' => 'required|email',
+        ]);
+
+        // جلب الملف الشخصي للمستخدم وتحديثه
+        $profile = auth()->user()->profile;
+        $profile->update($validatedData);
+
+        // إعادة التوجيه مع رسالة نجاح
+        return redirect()->intended(route('user.shop-sidebar'))->with('success', 'Profile updated successfully! Proceeding to shop');
+
+    }
+
+
+
+    // حذف الملف الشخصي
+    public function destroy()
+    {
+        $profile = auth()->user()->profile;
+        $profile->delete();
+
+        return redirect()->route('/')->with('success', 'Profile deleted successfully!');
     }
 }

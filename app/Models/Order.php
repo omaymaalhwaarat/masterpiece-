@@ -19,4 +19,9 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+    // الوصول إلى الملف الشخصي للمستخدم عبر علاقة المستخدم
+    public function profile()
+    {
+        return $this->user()->profile(); // الوصول إلى ملف المستخدم الشخصي
+    }
 }

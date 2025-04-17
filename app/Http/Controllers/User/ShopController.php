@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\user;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\Order;
 use App\Models\Category;
 use Illuminate\Http\Request;
 
@@ -45,8 +46,9 @@ class ShopController extends Controller
     $product = Product::findOrFail($request->product_id);
     $quantity = $request->input('quantity', 1);
 
-    // إضافة للسلة - نستخدم session
-    $cart = session()->get('cart', []);
+   // استخدام localStorage لتخزين السلة
+   $cart = json_decode($request->cookie('cart', '[]'), true); // قراءة السلة من الكوكيز إذا كانت موجودة
+
 
     // إذا كان المنتج موجود في السلة، زود الكمية
     if (isset($cart[$product->id])) {
@@ -99,6 +101,137 @@ public function removeFromCart($product_id)
     // إعادة التوجيه لصفحة السلة
     return redirect()->route('cart.view');
 }
+public function updateCart(Request $request, $productId)
+{
+    $cart = session()->get('cart', []);
+
+    // إذا كان المنتج موجود في السلة، تحديث الكمية
+    if (isset($cart[$productId])) {
+        $cart[$productId]['quantity'] = $request->quantity;
+    }
+
+    // تخزين السلة في الجلسة
+    session()->put('cart', $cart);
+
+    // حساب إجمالي السعر بعد التحديث
+    $cartCollection = collect($cart);
+    $cartTotal = number_format($cartCollection->sum(function ($item) {
+        $product = Product::find($item['product_id']);
+        return $item['quantity'] * $product->price;
+    }), 2);
+
+    // حساب السعر الفرعي للمنتج
+    $product = Product::find($productId);
+    $totalPrice = number_format($product->price * $cart[$productId]['quantity'], 2);
+
+    // إرسال البيانات المحدثة كـ JSON
+    return response()->json([
+        'totalPrice' => $totalPrice,
+        'cartTotal' => $cartTotal
+    ]);
+}
+public function getCartCount()
+{
+    // الحصول على السلة من الجلسة
+    $cart = session()->get('cart', []);
+
+    // حساب عدد العناصر في السلة
+    $cartCount = count($cart);
+
+    return $cartCount;
+}
+
+public function checkout(Request $request)
+{
+    // التأكد من أن المستخدم مسجل الدخول
+    if (auth()->check()) {
+        $user = auth()->user();
+        $profile = $user->profile;
+
+        // استرجاع السلة من الجلسة
+        $cart = session()->get('cart', []);
+
+        if (empty($cart)) {
+            return redirect()->route('cart.view')->with('error', 'Your cart is empty!');
+        }
+
+        // حساب السعر الإجمالي
+        $cartCollection = collect($cart);
+        $cartTotal = $cartCollection->sum(function ($item) {
+            $product = Product::find($item['product_id']);
+            return $item['quantity'] * $product->price;
+        });
+
+        // إذا كان الملف الشخصي موجودًا، يمكننا استخدامه مباشرة
+        if ($profile) {
+            // إرسال بيانات الـ Profile والـ Cart Total للـ View
+            return view('user.checkout', compact('cart', 'cartTotal', 'profile'));
+        } else {
+            return redirect()->route('user.profile.create')->with('error', 'Please complete your profile to proceed with the checkout.');
+        }
+    } else {
+        return redirect()->route('login')->with('error', 'You need to be logged in to proceed with the checkout.');
+    }
+}
+public function checkoutRedirect(Request $request)
+{
+    if (!auth()->check()) {
+        return redirect()->route('login')->with('error', 'You need to be logged in.');
+    }
+
+    $user = auth()->user();
+
+    // إذا ما عنده بروفايل
+    if (!$user->profile) {
+        // نحفظ الـ intended URL حتى يرجع له بعد ما يخلص
+        session()->put('url.intended', route('user.checkout'));
+
+        return redirect()->route('user.profile.create')->with('info', 'Please complete your profile to continue to checkout.');
+    }
+
+    // إذا عنده بروفايل، نوديه مباشرة للـ checkout
+    return redirect()->route('user.checkout');
+}
+
+public function placeOrder(Request $request)
+{
+    // استرجاع السلة من الجلسة
+    $cart = session()->get('cart', []);
+
+    // التأكد من أن السلة غير فارغة
+    if (empty($cart)) {
+        return redirect()->route('cart.view')->with('error', 'Your cart is empty!');
+    }
+
+    // حساب المجموع الكلي للطلب
+    $total = 0;
+    foreach ($cart as $item) {
+        $total += $item['price'] * $item['quantity'];
+    }
+
+    // إنشاء طلب جديد في جدول 'orders'
+    $order = Order::create([
+        'user_id' => auth()->id(), // المستخدم الحالي
+        'total' => $total,
+        'status' => 'pending', // حالة الطلب (قيد الانتظار)
+    ]);
+
+    // إضافة العناصر إلى جدول 'order_items'
+    foreach ($cart as $item) {
+        $order->items()->create([  // استخدام العلاقة لإضافة العناصر
+            'product_id' => $item['product_id'], // معرّف المنتج
+            'quantity' => $item['quantity'],
+            'price' => $item['price'],
+        ]);
+    }
+
+    // تفريغ السلة بعد إتمام الطلب
+    session()->forget('cart');
+
+    // إعادة التوجيه إلى صفحة المتجر مع رسالة نجاح
+    return redirect()->route('user.shop-sidebar')->with('success', 'Your order has been placed successfully!');
+}
+
 
 
 }

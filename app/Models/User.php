@@ -4,10 +4,8 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
-
 
 class User extends Authenticatable
 {
@@ -18,5 +16,18 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
     public $timestamps = true;
+
+    // إضافة العلاقة مع Profile
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
+
+    // العلاقة مع الطلبات
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }

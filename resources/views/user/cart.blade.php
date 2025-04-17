@@ -43,27 +43,28 @@
                       <div class="col-lg-6 col-md-7">
                           <div class="row d-flex">
                               <div class="col-md-4">
+                                
                                   <div class="input-group product-qty">
                                       <span class="input-group-btn">
-                                          <button type="button" class="quantity-left-minus btn btn-light btn-number" data-type="minus" data-field="">
-                                              <svg width="16" height="16">
-                                                  <use xlink:href="#minus"></use>
-                                              </svg>
-                                          </button>
+                                        <button type="button" class="quantity-left-minus btn btn-light btn-number" data-type="minus" data-product-id="{{ $product->id }}">
+                                          <svg width="16" height="16">
+                                              <use xlink:href="#minus"></use>
+                                          </svg>
+                                      </button>
                                       </span>
-                                      <input type="text" id="quantity" name="quantity" class="form-control input-number text-center" value="{{ $item['quantity'] }}" min="1" max="{{ $product->stock }}">
+                                      <input type="text" id="quantity-{{ $product->id }}" name="quantity" class="form-control input-number text-center" value="{{ $item['quantity'] }}" min="1" max="{{ $product->stock }}">
                                       <span class="input-group-btn">
-                                          <button type="button" class="quantity-right-plus btn btn-light btn-number" data-type="plus" data-field="">
-                                              <svg width="16" height="16">
-                                                  <use xlink:href="#plus"></use>
-                                              </svg>
-                                          </button>
+                                        <button type="button" class="quantity-right-plus btn btn-light btn-number" data-type="plus" data-product-id="{{ $product->id }}">
+                                          <svg width="16" height="16">
+                                              <use xlink:href="#plus"></use>
+                                          </svg>
+                                      </button>
                                       </span>
                                   </div>
                               </div>
                               <div class="col-md-8 text-center">
                                   <div class="total-price">
-                                      <span class="money text-dark">${{ $product->price * $item['quantity'] }}</span>
+                                      <span class="money text-dark" id="total-price-{{ $product->id }}">jd{{ $product->price * $item['quantity'] }}</span>
                                   </div>
                               </div>
                           </div>
@@ -117,11 +118,11 @@
                 <tr class="order-total pt-2 pb-2 border-bottom">
                   <th>Total</th>
                   <td data-title="Total">
-                    <span class="price-amount amount text-dark ps-5">
+                    <span class="price-amount amount text-dark ps-5" id="cart-total">
                       <bdi>
                         <span class="price-currency-symbol">jd</span>
                         {{ number_format($cartCollection->sum(function ($item) use ($products) {
-                          // استخدام المفتاح $productId الذي هو المفتاح في السلة
+                          // حساب total
                           $product = $products->firstWhere('id', $item['product_id']);
                           return $item['quantity'] * $product->price;
                         }), 2) }}
@@ -129,13 +130,19 @@
                     </span>
                   </td>
                 </tr>
+                
               </tbody>
             </table>
           </div>
           <div class="button-wrap row g-2">
             <div class="col-md-6"><button class="btn btn-dark text-uppercase btn-rounded-none w-100">Update Cart</button></div>
             <div class="col-md-6"><button class="btn btn-dark text-uppercase btn-rounded-none w-100">Continue Shopping</button></div>
-            <div class="col-md-12"><button class="btn btn-primary text-uppercase btn-rounded-none w-100">Proceed to Checkout</button></div>
+            {{-- <div class="col-md-12"><button class="btn btn-primary text-uppercase btn-rounded-none w-100" >Proceed to Checkout</button></div> --}}
+            <div class="col-md-12">
+              <a href="{{ route('user.checkout.redirect') }}" class="btn btn-primary text-uppercase btn-rounded-none w-100">
+                  Proceed to Checkout
+              </a>
+          </div>
           </div>
         </div>
       </div>
@@ -143,7 +150,65 @@
   </div>
 </section>
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // دالة لتحديث السلة
+    const updateCart = (productId, quantity) => {
+        fetch(`/cart/update/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ quantity: quantity })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // تحديث السعر الفرعي للمنتج
+            document.querySelector(`#total-price-${productId}`).textContent = `JD ${data.totalPrice}`;
 
+            // تحديث الكمية المعروضة في المدخل
+            document.querySelector(`#quantity-${productId}`).value = quantity;
+
+            // تحديث السعر الكلي للسلة
+            const cartTotalElement = document.querySelector('#cart-total');
+            if (cartTotalElement) {
+                cartTotalElement.textContent = `JD ${data.cartTotal}`; // تحديث الـ Total في الصفحة
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    };
+
+    // إضافة حدث عند الضغط على زر + لزيادة الكمية
+    document.querySelectorAll('.quantity-right-plus').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const quantityInput = document.querySelector(`#quantity-${productId}`);
+            let quantity = parseInt(quantityInput.value);
+            quantity++; // زيادة الكمية
+            updateCart(productId, quantity); // تحديث الكمية في السلة
+        });
+    });
+
+    // إضافة حدث عند الضغط على زر - لتقليل الكمية
+    document.querySelectorAll('.quantity-left-minus').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const quantityInput = document.querySelector(`#quantity-${productId}`);
+            let quantity = parseInt(quantityInput.value);
+            if (quantity > 1) {
+                quantity--; // تقليل الكمية
+                updateCart(productId, quantity); // تحديث الكمية في السلة
+            }
+        });
+    });
+});
+
+
+
+
+
+</script>
 @include('user.footer')
 
-<script src="js/cart.js"></script>
+

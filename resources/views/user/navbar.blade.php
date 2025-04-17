@@ -7,6 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="format-detection" content="telephone=no">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="author" content="TemplatesJungle">
   <meta name="keywords" content="ecommerce,fashion,store">
@@ -210,7 +211,7 @@
                 @guest
           <!-- يظهر فقط إذا كان المستخدم غير مسجل دخول -->
           <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
-        @endguest
+                @endguest
                 @auth
           <!-- يظهر فقط إذا كان المستخدم مسجل دخول -->
           <li class="nav-item"><a class="nav-link" href="{{ route('logout') }}"
@@ -222,7 +223,7 @@
           <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
             @csrf
           </form>
-        @endauth
+           @endauth
 
               </ul>
             </div>
@@ -241,20 +242,26 @@
           </a>
         </li>
         <li>
-          <a href="cart.html" class="text-uppercase mx-3">
+          <a href="{{ route('cart.view') }} " class="text-uppercase mx-3">
           <svg width="24" height="24" viewBox="0 0 24 24">
             <use xlink:href="#cart"></use>
           </svg>
-          <span class="cart-count">(0)</span>
+          <span class="cart-count">({{ session('cart') ? count(session('cart')) : 0 }})</span>
           </a>
         </li>
-        <li>
-          <a href="#like" class="mx-3">
-          <svg width="24" height="24" viewBox="0 0 24 24">
-            <use xlink:href="#user"></use>
-          </svg>
-          </a>
-        </li>
+
+        {{-- التحقق من وجود الملف الشخصي في الرابط
+        بتوجيه المستخدم بشكل صحيح بناءً على حالة الملف الشخصي. --}}
+          @auth
+          <li>
+              <a href="{{ route(auth()->user()->profile ? 'user.profile.edit' : 'user.profile.create') }}">
+                  <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color"> 
+                      <use xlink:href="#user"></use>
+                  </svg>
+              </a>
+          </li>
+          @endauth
+       {{-- ************************************************* --}}
       @endauth
             <li class="search-box">
               <a href="#" class="search-button mx-3">
