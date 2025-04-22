@@ -13,7 +13,7 @@ class CreateProductsTable extends Migration
             $table->text('description');
             $table->decimal('price', 10, 2);
             $table->integer('stock');
-            $table->foreignId('category_id')->constrained();
+            $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->foreignId('discount_id')->nullable()->constrained()->onDelete('set null'); // ربط الخصم بالمنتج
             $table->softDeletes(); // soft delete
             $table->timestamps();

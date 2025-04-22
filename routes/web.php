@@ -1,22 +1,30 @@
 <?php
+
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\ProductController;
-
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminOrderController;
+use App\Http\Controllers\Admin\AdminProductController;
+use App\Http\Controllers\Admin\AdminReviewController;
+use App\Http\Controllers\Admin\AdminCategoryController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\User\ShopController;
 use App\Http\Controllers\User\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 /*
-|--------------------------------------------------------------------------
+|----------------------------------------------------------------------
 | Web Routes
-|--------------------------------------------------------------------------
+|----------------------------------------------------------------------
 |
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
+| Here is where you can register web routes for your application.
+| These routes are loaded by the RouteServiceProvider and all of them will
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
 // صفحة الرئيسية (home)
 Route::get('/', [HomeController::class, 'index'])->name('user.index');
 
@@ -24,19 +32,34 @@ Route::get('/', [HomeController::class, 'index'])->name('user.index');
 Route::get('shop', [ShopController::class, 'index'])->name('user.shop-sidebar');
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('user.product.show');
 
-
-
+// تسجيل الخروج
 Route::post('/logout', function () {
     Auth::logout();
     return redirect('/'); // أو التوجيه إلى الصفحة المناسبة
 })->name('logout');
+// Route::middleware(['auth', 'role:admin'])->get('/admin-dashboard', function () {
+//     return view('admin.dashboard');  // إرجاع صفحة الـ Admin Dashboard
+// });
+// صفحة لوحة تحكم الادمن مع التحقق من الصلاحيات
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'admin']) // استخدم مصفوفة بدلاً من `middleware:`
+    ->prefix('admin')
+    ->name('admin.') // <-- أضف هذا السطر!
+    ->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::resource('users', AdminUserController::class);
+        Route::resource('categories', AdminCategoryController::class);
+        Route::resource('orders', AdminOrderController::class);
+        Route::resource('products', AdminProductController::class);
+        Route::resource('reviews', AdminReviewController::class);
+      
+
+    });
+
 
 Route::middleware('auth')->group(function () {
 
+    // مسارات خاصة بالمستخدمين
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('user.profile.edit');
     Route::put('/user/profile', [ProfileController::class, 'update'])->name('user.profile.update');
 
@@ -52,6 +75,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout', [ShopController::class, 'checkout'])->name('user.checkout'); // صفحة عرض الـ checkout
     Route::post('/checkout', [ShopController::class, 'placeOrder'])->name('user.checkout.placeOrder'); // عند تقديم الطلب
     Route::get('/checkout-redirect', [ShopController::class, 'checkoutRedirect'])->name('user.checkout.redirect');
+    Route::post('product/{productId}/review', [ProductController::class, 'storeReview'])->name('review.store');
+    Route::get('product/{productId}/review/delete', [ProductController::class, 'deleteReview'])->name('review.delete');
+    // إضافة Route لتحديث المراجعة
+    Route::put('product/{productId}/review/update', [ProductController::class, 'updateReview'])->name('review.update');
 });
 
 require __DIR__.'/auth.php';

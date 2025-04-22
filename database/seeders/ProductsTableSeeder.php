@@ -17,6 +17,7 @@ class ProductsTableSeeder extends Seeder
             'category_id' => 1, // Skin Care
             'discount_id' => 1, // DISCOUNT10
             'sales_count' => 0,
+            'how_to_use' => 'Apply generously to all exposed skin 15 minutes before sun exposure. Reapply every 2 hours or after swimming or sweating.',
         ]);
 
         Product::create([
@@ -27,6 +28,7 @@ class ProductsTableSeeder extends Seeder
             'category_id' => 1, // Skin Care
             'discount_id' => 2, // DISCOUNT20
             'sales_count' => 0,
+            'how_to_use' => 'Apply a small amount to clean, dry skin. Massage gently until fully absorbed. Use daily for best results.',
         ]);
 
         Product::create([
@@ -40,6 +42,7 @@ class ProductsTableSeeder extends Seeder
             'category_id' => 2, // Body Care
             'discount_id' => null, // No discount
             'sales_count' => 30,
+            'how_to_use' => 'Apply to clean, dry underarms. Allow to dry before dressing. Reapply as needed throughout the day for freshness.',
         ]);
 
         Product::create([
@@ -55,6 +58,7 @@ designed to deeply hydrate your hair while protecting it from environmental stre
             'category_id' => 3, // Hair Care
             'discount_id' => 1, // DISCOUNT10
             'sales_count' => 20,
+            'how_to_use' => 'Apply a small amount to damp or dry hair, focusing on the ends. Style as desired. Use daily for best results.',
         ]);
 
         // إضافة منتجات جديدة
@@ -66,6 +70,7 @@ designed to deeply hydrate your hair while protecting it from environmental stre
             'category_id' => 2, // Body Care
             'discount_id' => null, // DISCOUNT20
             'sales_count' => 0,
+            'how_to_use' => 'Apply to clean, dry underarms. Allow to dry before dressing. Reapply as needed throughout the day for freshness.',
         ]);
 
         Product::create([
@@ -76,6 +81,7 @@ designed to deeply hydrate your hair while protecting it from environmental stre
             'category_id' => 2, // Body Care
             'discount_id' => 2, // DISCOUNT20
             'sales_count' => 2,
+            'how_to_use' => 'Apply to clean, dry underarms. Allow to dry before dressing. Reapply as needed throughout the day for freshness.',
         ]);
 
         Product::create([
@@ -86,6 +92,7 @@ designed to deeply hydrate your hair while protecting it from environmental stre
             'category_id' => 2, // Body Care
             'discount_id' => 2, // DISCOUNT30
             'sales_count' => 3,
+            'how_to_use' => 'Apply to clean, dry underarms. Allow to dry before dressing. Reapply as needed throughout the day for freshness.',
         ]);
         Product::create([
             'name' => 'Lipstick',
@@ -95,6 +102,7 @@ designed to deeply hydrate your hair while protecting it from environmental stre
             'category_id' => 4, // Make-Up Products
             'discount_id' => 3, // DISCOUNT50
             'sales_count' => 100,
+            'how_to_use' => 'Apply directly to lips for a bold, matte finish. For a more precise application, use a lip brush. Reapply as needed throughout the day.',
         ]);
         
     }

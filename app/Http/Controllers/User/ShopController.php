@@ -41,6 +41,12 @@ class ShopController extends Controller
 
         return view('user.shop-sidebar', compact('products', 'categories'));
     }
+    
+    
+// ************************************************************
+//             ADD TO CART 
+    
+
     public function addToCart(Request $request)
 {
     $product = Product::findOrFail($request->product_id);
@@ -70,6 +76,8 @@ class ShopController extends Controller
     // إعادة التوجيه لصفحة السلة
     return redirect()->route('cart.view');
 }
+// *******************************************************************
+//                  VIEW   CART
 
 public function viewCart()
 {

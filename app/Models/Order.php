@@ -24,4 +24,11 @@ class Order extends Model
     {
         return $this->user()->profile(); // الوصول إلى ملف المستخدم الشخصي
     }
+    public function products()
+{
+    return $this->belongsToMany(Product::class);  // إذا كانت العلاقة Many-to-Many
+    // أو إذا كانت العلاقة One-to-Many
+    // return $this->belongsTo(Product::class);
+}
+
 }

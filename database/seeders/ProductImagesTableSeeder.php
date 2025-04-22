@@ -9,7 +9,7 @@ class ProductImagesTableSeeder extends Seeder
     {
         ProductImage::create([
             'product_id' => 1, // Sunscreen
-            'image_path' => 'sunscreen.png',
+            'image_path' => 'images/products/sunscreen.png',
         ]);
 
         ProductImage::create([
