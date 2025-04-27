@@ -5,7 +5,7 @@
         <div class="footer-menu footer-menu-001">
           <div class="footer-intro mb-4">
             <a href="{{ route('user.index') }}">
-              <img class="ft" src="images/main-logo.png" alt="logo">
+              <img src="{{ asset('images/main-logo.png') }}" alt="logo">
             </a>
           </div>
           <p>Sara's natural products are perfect for summer,
@@ -118,14 +118,15 @@
         <div class="col-md-6 d-flex flex-wrap">
           <div class="shipping">
             <span>We ship with:</span>
-            <img src="images/arct-icon.png" alt="icon">
-            <img src="images/dhl-logo.png" alt="icon">
+
+            <img src="{{ asset('images/arct-icon.png') }}" alt="icon">
+            <img src="{{ asset('images/dhl-logo.png') }}" alt="icon">
           </div>
           <div class="payment-option">
             <span>Payment Option:</span>
-            <img src="images/visa-card.png" alt="card">
-            <img src="images/paypal-card.png" alt="card">
-            <img src="images/master-card.png" alt="card">
+            <img src="{{ asset('images/visa-card.png') }}" alt="card">
+            <img src="{{ asset('images/paypal-card.png') }}" alt="card">
+            <img src="{{ asset('images/master-card.png') }}" alt="card">
           </div>
         </div>
         <div class="col-md-6 text-md-end mt-3 mt-md-0">
@@ -135,13 +136,21 @@
     </div>
   </div>
 </footer>
-<script src="js/jquery.min.js"></script>
-<script src="js/plugins.js"></script>
-<script src="js/SmoothScroll.js"></script>
+
+<script src="{{ asset('js/jquery.min.js') }}"></script>
+<script src="{{ asset('js/plugins.js') }}"></script>
+<script src="{{ asset('js/SmoothScroll.js') }}"></script>
+
+<!-- Bootstrap JS from CDN -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+  integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+  crossorigin="anonymous"></script>
+
+<!-- Swiper JS from CDN -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
-<script src="js/script.js"></script>
+
+<script src="{{ asset('js/script.js') }}"></script>
+
 </body>
 
 </html>

@@ -1,7 +1,7 @@
 @include('user.navbar')
 
 
-  <section class="py-5">
+  {{-- <section class="py-5">
     <div class="container">
       <div class="d-flex justify-content-between align-items-center mt-5">
         <h1 class="page-title display-4">Wishlist</h1>
@@ -197,6 +197,127 @@
         </figure>
       </div>
     </div>
-  </section>
+  </section> --}}
+
+
+
+
+
+      <section id="Wishlist" class="py-5 mb-5">
+          <div class="container">
+              <div class="row text-dark my-3">
+                  <div class="col-5 text-uppercase">Product</div>
+                  <div class="col-2 text-uppercase">Unit Price</div>
+                  <div class="col-2 text-uppercase">Stock Status</div>
+              </div>
+              <div id="wishlist-items" class="product-wrapper">
+                  <!-- سيتم إضافة العناصر هنا عبر JavaScript -->
+                  @foreach ($wishlist as $item)
+                      <div class="product-item row align-items-center mb-4">
+                          <div class="col-4 col-md-1 d-flex align-items-center text-left">
+                              <a href="#">
+                                  <img src="{{ $item['productImage'] }}" alt="wishlist" class="img-fluid">
+                              </a>
+                          </div>
+                          <div class="col-8 col-md-4">
+                              <h3 class="item-title text-uppercase fs-5">
+                                  <a href="#">{{ $item['productName'] }}</a>
+                              </h3>
+                          </div>
+                          <div class="col-3 col-md-2 product-price text-left">
+                              <span class="item-price">${{ $item['productPrice'] }}</span>
+                          </div>
+                          <div class="col-3 col-md-2 wishlist-stock text-left">
+                              <span class="item-stock">In Stock</span>
+                          </div>
+                          <div class="col-3 col-md-2 wishlist-add text-left">
+                              <form action="" method="post" class="variants">
+                                  <a class="btn btn-outline-dark text-uppercase" title="Add to Cart" href="#">Add To Cart</a>
+                              </form>
+                          </div>
+                          <div class="col-3 col-md-1 text-left">
+                              <div class="cart-remove">
+                                  <a href="#" onclick="removeFromWishlist({{ $item['productId'] }})">
+                                      <svg width="32px">
+                                          <use xlink:href="#trash"></use>
+                                      </svg>
+                                  </a>
+                              </div>
+                          </div>
+                      </div>
+                  @endforeach
+              </div>
+          </div>
+      </section>
+
+  
+
+<script>
+    // تحميل المنتجات من localStorage عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', function() {
+        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+        const wishlistContainer = document.getElementById('wishlist-items');
+
+        // التحقق إذا كانت القائمة فارغة
+        if (wishlist.length === 0) {
+            wishlistContainer.innerHTML = '<p>Your wishlist is empty.</p>';
+            return;
+        }
+
+        // إضافة العناصر المخزنة في الـ wishlist
+        wishlist.forEach(item => {
+            const productHTML = `
+                <div class="product-item row align-items-center mb-4">
+                    <div class="col-4 col-md-1 d-flex align-items-center text-left">
+                        <a href="#">
+                            <img src="${item.productImage}" alt="wishlist" class="img-fluid">
+                        </a>
+                    </div>
+                    <div class="col-8 col-md-4">
+                        <h3 class="item-title text-uppercase fs-5">
+                            <a href="#">${item.productName}</a>
+                        </h3>
+                    </div>
+                    <div class="col-3 col-md-2 product-price text-left">
+                        <span class="item-price">${item.productPrice}</span>
+                    </div>
+                    <div class="col-3 col-md-2 wishlist-stock text-left">
+                        <span class="item-stock">In Stock</span>
+                    </div>
+                    <div class="col-3 col-md-2 wishlist-add text-left">
+                        <form action="" method="post" class="variants">
+                            <a class="btn btn-outline-dark text-uppercase" title="Add to Cart" href="#">Add To Cart</a>
+                        </form>
+                    </div>
+                    <div class="col-3 col-md-1 text-left">
+                        <div class="cart-remove">
+                            <a href="#" onclick="removeFromWishlist(${item.productId})">
+                                <svg width="32px">
+                                    <use xlink:href="#trash"></use>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            wishlistContainer.innerHTML += productHTML;
+        });
+    });
+
+    // حذف منتج من الـ wishlist
+    function removeFromWishlist(productId) {
+        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+
+        // إزالة المنتج
+        wishlist = wishlist.filter(item => item.productId !== productId);
+
+        // تحديث الـ localStorage
+        localStorage.setItem('wishlist', JSON.stringify(wishlist));
+
+        // إعادة تحميل الصفحة لتحديث المحتوى
+        location.reload();
+    }
+</script>
+
 
  @include('user.footer')

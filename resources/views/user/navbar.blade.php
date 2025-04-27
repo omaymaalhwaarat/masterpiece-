@@ -14,10 +14,18 @@
   <meta name="description" content="Beauty Store Bootstrap 5 HTML CSS Template">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
-  <link rel="stylesheet" type="text/css" href="icomoon/icomoon.css">
-  <link rel="stylesheet" type="text/css" href="css/vendor.css">
+
+  <!-- Custom Icomoon CSS -->
+  <link rel="stylesheet" type="text/css" href="{{ asset('icomoon/icomoon.css') }}">
+
+  <!-- Vendor CSS -->
+  <link rel="stylesheet" type="text/css" href="{{ asset('css/vendor.css') }}">
+
+  <!-- Swiper CSS from CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
-  <link rel="stylesheet" type="text/css" href="style.css">
+
+  <!-- Custom Style CSS -->
+  <link rel="stylesheet" type="text/css" href="{{ asset('style.css') }}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -140,7 +148,7 @@
     </defs>
   </svg>
 
-  <div class="preloader text-white fs-6 text-uppercase overflow-hidden"></div>
+  {{-- <div class="preloader text-white fs-6 text-uppercase overflow-hidden"></div> --}}
 
 
 
@@ -205,7 +213,7 @@
                 </li>
 
                 <li class="nav-item">
-                  <a class="nav-link" href="#">Contact</a>
+                  <a class="nav-link" href="{{ route('user.faqs') }}">Contact</a>
                 </li>
 
                 @guest
@@ -234,12 +242,13 @@
           <ul class="list-unstyled d-flex m-0 mt-3 mt-xl-0">
             @auth
         <li>
-          <a href="wishlist.html" class="text-uppercase mx-3">
-          <svg width="24" height="24" viewBox="0 0 24 24">
-            <use xlink:href="#heart"></use>
-          </svg>
-          <span class="wishlist-count">(0)</span>
-          </a>
+          <a href="{{ route('user.wishlist') }}" class="text-uppercase mx-3" id="wishlist-link">
+            <svg width="24" height="24" viewBox="0 0 24 24">
+                <use xlink:href="#heart"></use>
+            </svg>
+            <span class="wishlist-count" id="wishlist-count">(0)</span>
+        </a>
+        
         </li>
         <li>
           <a href="{{ route('cart.view') }} " class="text-uppercase mx-3">
@@ -255,9 +264,10 @@
           @auth
           <li>
               <a href="{{ route(auth()->user()->profile ? 'user.profile.edit' : 'user.profile.create') }}">
-                  <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color"> 
+                  {{-- <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color"> 
                       <use xlink:href="#user"></use>
-                  </svg>
+                  </svg> --}}
+                  {{  auth()->user()->name }} 
               </a>
           </li>
           @endauth
@@ -277,3 +287,46 @@
 
     </div>
   </nav>
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // تحميل الـ wishlist من localStorage
+    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+
+    // تحديث العداد لعدد المنتجات في الـ wishlist
+    const wishlistCount = wishlist.length;
+    document.getElementById('wishlist-count').textContent = `(${wishlistCount})`;
+});
+
+function addToWishlist(productId, productName, productPrice, productImage) {
+    // الحصول على الـ wishlist من localStorage
+    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+
+    // التحقق إذا كان المنتج موجود بالفعل
+    const productExists = wishlist.some(item => item.productId === productId);
+    if (productExists) {
+        alert('This product is already in your wishlist.');
+        return;
+    }
+
+    // إضافة المنتج الجديد إلى الـ wishlist
+    wishlist.push({
+        productId: productId,
+        productName: productName,
+        productPrice: productPrice,
+        productImage: productImage
+    });
+
+    // تخزين الـ wishlist في localStorage
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+
+    // تحديث العداد بعد إضافة المنتج
+    const wishlistCount = wishlist.length;
+    document.getElementById('wishlist-count').textContent = `(${wishlistCount})`;
+
+    // عرض رسالة تأكيد
+    alert('Product added to your wishlist!');
+}
+</script>
+
+ 
+  

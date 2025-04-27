@@ -1,91 +1,165 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+@include('user.navbar')
 
-        <title>login</title>
-
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-        
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans text-gray-900 antialiased">
-    
-  <nav class="navbar navbar-expand-lg text-uppercase fs-6 py-3 px-0 px-md-3 border-bottom align-items-center">
-    <div class="container-fluid">
-      <div class="row justify-content-between align-items-center w-100 py-2">
-
-        <div class="col-auto sara-logo">
-          <a class="navbar-brand" href="{{ route('user.index') }}">
-            HOME
-            <!-- <img class="" src="images/main-logo.png" alt="logo"> -->
-          </a>
+@if (session('success'))
+    <div class="position-fixed top-50 start-50 translate-middle" style="z-index: 1055;">
+        <div id="profileToast" class="toast show text-center border-0" role="alert"
+             style="background-color: rgba(255, 255, 255, 0.85); color: #c85c8e; font-family: 'Poppins', sans-serif; font-size: 1.1rem; padding: 1rem 2rem; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1);">
+            {{ session('success') }}
         </div>
+    </div>
+@endif
 
-           
-            </div>
-          </div>
-    
-  </nav>
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-         
-
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
-                <x-auth-session-status class="mb-4" :status="session('status')" />
-
-                <form method="POST" action="{{ route('login') }}">
-                    @csrf
-
-                    <!-- Email Address -->
-                    <div>
-                        <x-input-label for="email" :value="__('Email')" />
-                        <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-                        <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                    </div>
-
-                    <!-- Password -->
-                    <div class="mt-4">
-                        <x-input-label for="password" :value="__('Password')" />
-                        <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
-                        <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                    </div>
-
-                    <!-- Remember Me -->
-                    <div class="block mt-4">
-                        <label for="remember_me" class="inline-flex items-center">
-                            <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                            <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-                        </label>
-                    </div>
-
-                    <div class="flex items-center justify-end mt-4">
-                        @if (Route::has('password.request'))
-                            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-                                href="{{ route('password.request') }}">
-                                {{ __('Forgot your password?') }}
-                            </a>
-                        @endif
-
-                        <x-primary-button class="ms-3">
-                            {{ __('Log in') }}
-                        </x-primary-button>
-                    </div>
-                </form>
-
-                <div class="mt-4 text-center">
-                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                        {{ __("You don't have an account?") }}
-                        <a href="{{ route('register') }}" class="text-indigo-600 hover:text-indigo-500">
-                            {{ __('Register now') }}
-                        </a>
-                    </p>
+<section class="hero-section jarallax">
+    <img src="images/banner-large-7.jpg" class="jarallax-img">
+    <div class="py-5">
+        <div class="container">
+            <div class="row mt-5">
+                <div class="d-flex flex-wrap flex-column justify-content-center align-items-center my-5 py-5 text-white">
+                    <h1 class="page-title text-uppercase mt-5 display-4">Login</h1>
                 </div>
             </div>
         </div>
-    </body>
-</html>
+    </div>
+</section>
+
+<div class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card p-4">
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" class="form-control" name="email" required autofocus value="{{ old('email') }}">
+                            @error('email') <div class="text-danger">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" id="password" class="form-control" name="password" required>
+                            @error('password') <div class="text-danger">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" id="remember_me" name="remember" class="form-check-input">
+                            <label for="remember_me" class="form-check-label">Remember me</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Login</button>
+
+                        @if (Route::has('password.request'))
+                            <div class="mt-3 text-center">
+                                <a href="{{ route('password.request') }}" class="text-decoration-none">Forgot your password?</a>
+                            </div>
+                        @endif
+
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <p class="text-sm text-gray-600">
+                            Don't have an account? <a href="{{ route('register') }}" class="text-indigo-600">Register now</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="newsletter my-5" style="background: url(images/newsletter-image.jpg) no-repeat;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center text-white">
+                <h2 class="display-4">Subscribe to our Newsletter</h2>
+                <p class="lead">Get the latest updates and offers directly to your inbox.</p>
+                <form action="#" method="POST">
+                    <input type="email" class="form-control mb-3" placeholder="Enter your email" required>
+                    <button type="submit" class="btn btn-primary">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Additional CSS -->
+<style>
+    .hero-section {
+        position: relative;
+        width: 100%;
+        height: 50vh;
+        background-size: cover;
+        background-position: center;
+    }
+
+    .page-title {
+        font-family: 'Poppins', sans-serif;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .card {
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card .form-label {
+        font-family: 'Poppins', sans-serif;
+        color: #333;
+    }
+
+    .btn-primary {
+        background-color: #c85c8e;
+        border-color: #c85c8e;
+    }
+
+    .btn-primary:hover {
+        background-color: #9b4d68;
+        border-color: #9b4d68;
+    }
+
+    .newsletter {
+        background-size: cover;
+        background-position: center;
+        padding: 60px 0;
+    }
+
+    .newsletter .display-4 {
+        font-family: 'Poppins', sans-serif;
+        font-weight: bold;
+        color: #fff;
+    }
+
+    .newsletter .lead {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1.25rem;
+    }
+
+    .newsletter input[type="email"] {
+        width: 100%;
+        padding: 15px;
+        font-size: 1rem;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        margin-bottom: 15px;
+    }
+
+    .newsletter button {
+        padding: 15px 30px;
+        font-size: 1rem;
+        border-radius: 10px;
+    }
+</style>
+
+<!-- Additional JS -->
+<script>
+    // Show toast notification when the session has success message
+    if (document.querySelector('#profileToast')) {
+        setTimeout(function() {
+            let toast = document.querySelector('#profileToast');
+            toast.classList.remove('show');
+        }, 5000); // Dismiss toast after 5 seconds
+    }
+</script>

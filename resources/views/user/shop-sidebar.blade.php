@@ -52,11 +52,12 @@
                 <a href="{{ route('user.product.show', $product->id) }}">
                   <img src="{{ asset( $product->images->first()->image_path) }}" alt="categories" class="product-image img-fluid">
                 </a>
-                <a href="wishlist.html" class="btn-icon btn-wishlist">
+                <a href="javascript:void(0)" class="btn-icon btn-wishlist" onclick="addToWishlist({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ asset($product->images->first()->image_path) }}')">
                   <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color">
-                    <use xlink:href="#heart"></use>
+                      <use xlink:href="#heart"></use>
                   </svg>
-                </a>
+              </a>
+                
                 <a href="wishlist.html" class="btn-icon btn-cart">
                   <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color">
                     <use xlink:href="#cart"></use>
@@ -120,9 +121,84 @@
           <div class="product-filter padding-small">
             <div class="text-dark text-uppercase">Filter By:</div>
             <div class="accordion" id="accordionExample">
-              <!-- Accordion items here -->
+                <!-- Price Filter -->
+                <!-- Price Filter -->
+<!-- Price Filter -->
+<div class="accordion-item">
+  <div class="accordion-header" id="heading-one">
+    <button class="accordion-button py-3" type="button" data-bs-toggle="collapse"
+      data-bs-target="#collapse-one" aria-expanded="true" aria-controls="collapse-one">
+      <span class="accordion-title fs-3">Price</span>
+    </button>
+  </div>
+  <div id="collapse-one" class="accordion-collapse collapse show" aria-labelledby="heading-one">
+    <div class="accordion-body">
+      <form action="{{ route('user.shop-sidebar') }}" method="GET">
+        <div class="mb-3">
+          <label for="price_range" class="form-label">Select Price Range</label>
+          <select name="price_range" class="form-select" aria-label="Price Range">
+            <option value="10" {{ request('price_range') == '10' ? 'selected' : '' }}>&lt; $10</option>
+            <option value="20-40" {{ request('price_range') == '20-40' ? 'selected' : '' }}>$20 - $40</option>
+            <option value="40-50" {{ request('price_range') == '40-50' ? 'selected' : '' }}>$40 - $50</option>
+            <option value="50-60" {{ request('price_range') == '50-60' ? 'selected' : '' }}>$50 - $60</option>
+            <option value="60" {{ request('price_range') == '60' ? 'selected' : '' }}>&gt; $60</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Apply</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+        
+                <!-- Best Seller Filter -->
+                <div class="accordion-item">
+                    <div class="accordion-header" id="heading-three">
+                        <button class="accordion-button py-3" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapse-three" aria-expanded="true" aria-controls="collapse-three">
+                            <span class="accordion-title fs-3">Best Seller</span>
+                        </button>
+                    </div>
+                    <div id="collapse-three" class="accordion-collapse collapse show" aria-labelledby="heading-three">
+                        <div class="accordion-body">
+                            <form action="{{ route('user.shop-sidebar') }}" method="GET">
+                                <div>
+                                    <label for="best_seller">
+                                        <input type="checkbox" name="best_seller" value="1" {{ request('best_seller') ? 'checked' : '' }}>
+                                        Best Seller
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-3">Apply</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- New Arrivals Filter -->
+                <div class="accordion-item">
+                    <div class="accordion-header" id="heading-four">
+                        <button class="accordion-button py-3" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapse-four" aria-expanded="true" aria-controls="collapse-four">
+                            <span class="accordion-title fs-3">New Arrivals</span>
+                        </button>
+                    </div>
+                    <div id="collapse-four" class="accordion-collapse collapse show" aria-labelledby="heading-four">
+                        <div class="accordion-body">
+                            <a href="#">HYDRA BEAUTY MICRO CRÈME YEUX Illuminating <span class="count">(100)</span></a>
+                            <a href="#">GET-BACK Targeted Body Acne Spray <span class="count">(80)</span></a>
+                            <a href="#">Day & Night Neck Treatment Duo <span class="count">(90)</span></a>
+                            <a href="#">B-Goldi Bright Drops <span class="count">(70)</span></a>
+                            <a href="#">LE GEL COAT Longwear Top Coat <span class="count">(50)</span></a>
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- Reset Filters -->
+                <a href="{{ route('user.shop-sidebar') }}" class="btn-link text-uppercase item-anchor">Reset All Filters</a>
             </div>
-          </div>
+        </div>
+        
         </div>
       </aside>
     </div>
@@ -164,6 +240,34 @@
       }, 2000); // يختفي بعد 4 ثواني
     }
   });
+  function addToWishlist(productId, productName, productPrice, productImage) {
+    // الحصول على الـ wishlist من localStorage إذا كانت موجودة أو تهيئتها إذا كانت فارغة
+    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+
+    // التحقق إذا كان المنتج موجود بالفعل في الـ wishlist
+    const productExists = wishlist.some(item => item.productId === productId);
+    if (productExists) {
+        alert('This product is already in your wishlist.');
+        return;
+    }
+
+    // إضافة المنتج إلى الـ wishlist
+    wishlist.push({
+        productId: productId,
+        productName: productName,
+        productPrice: productPrice,
+        productImage: productImage
+    });
+
+    // تخزين الـ wishlist المحدث في localStorage
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+
+    // عرض رسالة تأكيد أو يمكن تحديث واجهة المستخدم
+    alert('Product added to your wishlist!');
+          // إعادة تحميل الصفحة لتحديث المحتوى
+          location.reload();
+}
+
 </script>
 
 @include('user.footer')

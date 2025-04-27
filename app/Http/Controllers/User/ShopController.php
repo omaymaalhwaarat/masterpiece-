@@ -91,6 +91,12 @@ public function viewCart()
     // إعادة عرض السلة مع المنتجات
     return view('user.cart', compact('cart', 'products'));
 }
+
+    
+
+// هذه الدالة تستخدم لإزالة منتج من السلة
+// يتم استرجاع السلة من الـ session، ثم حذف المنتج المحدد
+// وأخيرًا، يتم تحديث السلة في الـ session
 public function removeFromCart($product_id)
 {
     // استرجاع السلة من الـ session
@@ -109,6 +115,14 @@ public function removeFromCart($product_id)
     // إعادة التوجيه لصفحة السلة
     return redirect()->route('cart.view');
 }
+
+
+// هذه الدالة تستخدم لتحديث كمية المنتج في السلة
+// يتم استرجاع السلة من الجلسة، ثم تحديث الكمية للمنتج المحدد
+// وأخيرًا، يتم حساب السعر الإجمالي وإرجاعه كـ JSON
+// يتم استخدام الـ productId لتحديد المنتج الذي سيتم تحديثه
+// يتم استخدام الـ request لتحديد الكمية الجديدة
+// يتم استخدام الـ session لتخزين السلة
 public function updateCart(Request $request, $productId)
 {
     $cart = session()->get('cart', []);
@@ -138,6 +152,10 @@ public function updateCart(Request $request, $productId)
         'cartTotal' => $cartTotal
     ]);
 }
+
+// هذه الدالة تستخدم لحساب عدد العناصر في السلة
+// يتم استرجاع السلة من الجلسة، ثم حساب عدد العناصر فيها
+// وأخيرًا، يتم إرجاع العدد
 public function getCartCount()
 {
     // الحصول على السلة من الجلسة
@@ -148,6 +166,11 @@ public function getCartCount()
 
     return $cartCount;
 }
+
+//************* */ CHECKOUT **************  
+// هذه الدالة تستخدم لعرض صفحة الـ checkout
+// بعد التأكد من أن المستخدم مسجل الدخول ولديه بروفايل
+// إذا لم يكن لديه بروفايل، يتم توجيهه لإنشاء بروفايل جديد
 
 public function checkout(Request $request)
 {
@@ -181,6 +204,14 @@ public function checkout(Request $request)
         return redirect()->route('login')->with('error', 'You need to be logged in to proceed with the checkout.');
     }
 }
+
+
+
+//************* */  CHECKOUT REDIRECT **************
+// هذه الدالة تستخدم لإعادة توجيه المستخدم إلى صفحة الـ checkout
+// بعد التأكد من أنه مسجل الدخول ولديه بروفايل
+// إذا لم يكن لديه بروفايل، يتم توجيهه لإنشاء بروفايل جديد
+// إذا كان المستخدم غير مسجل الدخول، يتم توجيهه إلى صفحة تسجيل الدخول
 public function checkoutRedirect(Request $request)
 {
     if (!auth()->check()) {
@@ -200,6 +231,49 @@ public function checkoutRedirect(Request $request)
     // إذا عنده بروفايل، نوديه مباشرة للـ checkout
     return redirect()->route('user.checkout');
 }
+
+
+//************* */  CHECKOUT REDIRECT TO PROFILE EDIT **************
+// هذه الدالة تستخدم لإعادة توجيه المستخدم إلى صفحة تعديل الملف الشخصي
+public function redirectToProfileEdit()
+{
+    // استرجاع بيانات الـ cart من الجلسة
+    $cart = session()->get('cart', []);
+    $cartTotal = 0;
+
+    // حساب المجموع الكلي للـ cart
+    foreach ($cart as $item) {
+        $cartTotal += $item['price'] * $item['quantity'];
+    }
+
+    // تخزين الـ cart و الـ cartTotal في الجلسة
+    session(['cart' => $cart]);
+    session(['cartTotal' => $cartTotal]);
+
+    // إعادة التوجيه إلى صفحة تعديل الملف الشخصي
+    return redirect()->route('user.profile.edit');
+}
+
+
+
+//************* */  UPDATE PROFILE **************
+// هذه الدالة تستخدم لتحديث بيانات الملف الشخصي للمستخدم
+public function updateProfile(Request $request)
+{
+    // حفظ التعديلات
+    $user = auth()->user();
+    $user->update($request->all());
+
+    // استرجاع الـ cart من الجلسة بعد حفظ التعديلات
+    $cartTotal = session('cartTotal');
+    $cartItems = session('cart');
+
+    // إعادة التوجيه إلى صفحة Checkout مع استرجاع الـ cart
+    return redirect()->route('user.checkout')->with(['cartTotal' => $cartTotal, 'cartItems' => $cartItems]);
+}
+
+
+//************* */ رفع الطلب على database **************
 
 public function placeOrder(Request $request)
 {
@@ -239,6 +313,20 @@ public function placeOrder(Request $request)
     // إعادة التوجيه إلى صفحة المتجر مع رسالة نجاح
     return redirect()->route('user.shop-sidebar')->with('success', 'Your order has been placed successfully!');
 }
+
+
+public function wishlist()
+{
+    // إذا كان المستخدم مسجل الدخول
+    $user_id = auth()->id();
+
+    // افتراضياً الـ wishlist فارغة إذا لم تكن موجودة
+    $wishlist = json_decode(request()->cookie('wishlist_'.$user_id), true) ?? [];
+
+    return view('user.wishlist', compact('wishlist', 'user_id'));
+}
+
+
 
 
 

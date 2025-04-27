@@ -1,82 +1,71 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+@include('user.navbar')
 
-        <title>Register Now</title>
-
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <nav class="navbar navbar-expand-lg text-uppercase fs-6 py-3 px-0 px-md-3 border-bottom align-items-center">
-            <div class="container-fluid">
-              <div class="row justify-content-between align-items-center w-100 py-2">
-        
-                <div class="col-auto sara-logo">
-                  <a class="navbar-brand" href="{{ route('user.index') }}">
-                    HOME
-                    <!-- <img class="" src="images/main-logo.png" alt="logo"> -->
-                  </a>
+<section class="hero-section jarallax">
+    <img src="images/banner-large-7.jpg" class="jarallax-img">
+    <div class="py-5">
+        <div class="container">
+            <div class="row mt-5">
+                <div class="d-flex flex-wrap flex-column justify-content-center align-items-center my-5 py-5 text-white">
+                    <h1 class="page-title text-uppercase mt-5 display-4">Register Now</h1>
                 </div>
-        
-                   
-                    </div>
-                  </div>
-            
-          </nav>
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-          
-
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
-                <form method="POST" action="{{ route('register') }}">
-                    @csrf
-
-                    <!-- Name -->
-                    <div>
-                        <x-input-label for="name" :value="__('Name')" />
-                        <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-                        <x-input-error :messages="$errors->get('name')" class="mt-2" />
-                    </div>
-
-                    <!-- Email Address -->
-                    <div class="mt-4">
-                        <x-input-label for="email" :value="__('Email')" />
-                        <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-                        <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                    </div>
-
-                    <!-- Password -->
-                    <div class="mt-4">
-                        <x-input-label for="password" :value="__('Password')" />
-                        <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-                        <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                    </div>
-
-                    <!-- Confirm Password -->
-                    <div class="mt-4">
-                        <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-                        <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
-                        <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-                    </div>
-
-                    <div class="flex items-center justify-end mt-4">
-                        <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
-                            {{ __('Already registered?') }}
-                        </a>
-
-                        <x-primary-button class="ms-4">
-                            {{ __('Register') }}
-                        </x-primary-button>
-                    </div>
-                </form>
             </div>
         </div>
-    </body>
-</html>
+    </div>
+</section>
+
+<div class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <main class="col-md-6">
+                <div class="row py-2">
+                    <div class="col-md-12">
+                        <form method="POST" action="{{ route('register') }}" class="bg-white shadow-md p-4 rounded-lg">
+                            @csrf
+
+                            <!-- Name -->
+                            <div class="mb-4">
+                                <label for="name" class="form-label">{{ __('Name') }}</label>
+                                <input type="text" id="name" name="name" class="form-control" value="{{ old('name') }}" required autofocus autocomplete="name">
+                                @error('name') 
+                                  <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <!-- Email Address -->
+                            <div class="mb-4">
+                                <label for="email" class="form-label">{{ __('Email Address') }}</label>
+                                <input type="email" id="email" name="email" class="form-control" value="{{ old('email') }}" required autocomplete="email">
+                                @error('email') 
+                                  <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <!-- Password -->
+                            <div class="mb-4">
+                                <label for="password" class="form-label">{{ __('Password') }}</label>
+                                <input type="password" id="password" name="password" class="form-control" required autocomplete="new-password">
+                                @error('password') 
+                                  <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div class="mb-4">
+                                <label for="password_confirmation" class="form-label">{{ __('Confirm Password') }}</label>
+                                <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" required autocomplete="new-password">
+                                @error('password_confirmation') 
+                                  <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="{{ route('login') }}" class="text-muted">{{ __('Already have an account?') }}</a>
+                                <button type="submit" class="btn btn-primary">{{ __('Register') }}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>

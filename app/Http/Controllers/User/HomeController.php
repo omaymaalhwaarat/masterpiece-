@@ -32,4 +32,8 @@ class HomeController extends Controller
 return view('user.index', compact('categories', 'newArrivals', 'bestSellers', 'highestDiscountProduct'));
        
     }
+    public function faqs()
+    {
+        return view('user.faqs');  // تأكد من أن لديك ملف view مخصص لهذه الصفحة
+    }
 }

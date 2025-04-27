@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\User\ShopController;
 use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\User\ContactController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -55,7 +56,17 @@ Route::middleware(['auth', 'admin']) // استخدم مصفوفة بدلاً م�
       
 
     });
-
+    Route::get('/test-mail', function() {
+        try {
+            Mail::raw('This is a test email', function($message) {
+                $message->to('omaymaalhawarat@gmail.com')
+                        ->subject('Test Email');
+            });
+            return 'Email sent successfully!';
+        } catch (\Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        }
+    });
 
 Route::middleware('auth')->group(function () {
 
@@ -70,6 +81,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/cart', [ShopController::class, 'viewCart'])->name('cart.view');
     Route::delete('/cart/remove/{product_id}', [ShopController::class, 'removeFromCart'])->name('cart.remove');
     Route::post('/cart/update/{productId}', [ShopController::class, 'updateCart']);
+    Route::get('/faqs', [HomeController::class, 'faqs'])->name('user.faqs');
 
     // صفحة الـ Checkout
     Route::get('/checkout', [ShopController::class, 'checkout'])->name('user.checkout'); // صفحة عرض الـ checkout
@@ -79,6 +91,9 @@ Route::middleware('auth')->group(function () {
     Route::get('product/{productId}/review/delete', [ProductController::class, 'deleteReview'])->name('review.delete');
     // إضافة Route لتحديث المراجعة
     Route::put('product/{productId}/review/update', [ProductController::class, 'updateReview'])->name('review.update');
+    Route::post('/contact/store', [ContactController::class, 'store'])->name('user.contact.store');
+    Route::get('/wishlist', [ShopController::class, 'wishlist'])->name('user.wishlist');
+
 });
 
 require __DIR__.'/auth.php';

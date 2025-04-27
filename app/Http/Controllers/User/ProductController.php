@@ -31,24 +31,58 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        // عرض كل المنتجات (من الممكن إضافة فلترة هنا حسب الفئة أو البحث)
+        // Fetch categories
         $categories = Category::all();
         $products = Product::with('category', 'discount');
-
-        // تصفية المنتجات حسب الفئة
+        
+        // Filter by category
         if ($request->has('category_id')) {
             $products = $products->where('category_id', $request->category_id);
         }
-
-        // تصفية المنتجات حسب البحث
+        
+        // Search products by name
         if ($request->has('search')) {
             $products = $products->where('name', 'like', '%' . $request->search . '%');
         }
+    
+        // Price range filtering
+         // إذا كان هناك فلتر للـ price_range
+      // إذا كان هناك فلتر للـ price_range
+      if ($request->has('price_range')) {
+        $priceRange = $request->input('price_range');
 
+        if ($priceRange == '10') {
+            // إذا كانت القيمة أقل من 10
+            $products->where('price', '<', 10.00); // تأكد من استخدام 10.00 بدلاً من 10
+        } elseif ($priceRange == '20-40') {
+            // إذا كانت القيمة بين 20 و 40
+            $products->whereBetween('price', [20.00, 40.00]); // تأكد من استخدام القيم كـ decimals
+        } elseif ($priceRange == '40-50') {
+            // إذا كانت القيمة بين 40 و 50
+            $products->whereBetween('price', [40.00, 50.00]);
+        } elseif ($priceRange == '50-60') {
+            // إذا كانت القيمة بين 50 و 60
+            $products->whereBetween('price', [50.00, 60.00]);
+        } elseif ($priceRange == '60') {
+            // إذا كانت القيمة أكبر من 60
+            $products->where('price', '>', 60.00);
+        }
+    }
+
+
+        
+        
+        // Filter by Best Seller
+        if ($request->has('best_seller')) {
+            $products = $products->where('is_best_seller', true); 
+        }
+    
         $products = $products->get();
-
+    
         return view('user.shop-sidebar', compact('products', 'categories'));
     }
+    
+    
 
 
 
