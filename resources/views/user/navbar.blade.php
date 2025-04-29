@@ -193,24 +193,6 @@
                   <a href="{{ route('user.shop-sidebar') }}" class="nav-link" aria-haspopup="true">Shop</a>
                 </li>
 
-                <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" id="dropdownBlog" data-bs-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false">Blog</a>
-                  <ul class="dropdown-menu list-unstyled" aria-labelledby="dropdownBlog">
-                    <li>
-                      <a href="blog-classic.html" class="dropdown-item item-anchor">Blog </a>
-                    </li>
-                    <li>
-                      <a href="blog-grid-with-sidebar.html" class="dropdown-item item-anchor">Blog with Sidebar </a>
-                    </li>
-                    <li>
-                      <a href="single-post-no-sidebar.html" class="dropdown-item item-anchor">Single Post </a>
-                    </li>
-                    <li>
-                      <a href="single-post.html" class="dropdown-item item-anchor">Single post with Sidebar </a>
-                    </li>
-                  </ul>
-                </li>
 
                 <li class="nav-item">
                   <a class="nav-link" href="{{ route('user.faqs') }}">Contact</a>
@@ -219,7 +201,7 @@
                 @guest
           <!-- يظهر فقط إذا كان المستخدم غير مسجل دخول -->
           <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
-                @endguest
+        @endguest
                 @auth
           <!-- يظهر فقط إذا كان المستخدم مسجل دخول -->
           <li class="nav-item"><a class="nav-link" href="{{ route('logout') }}"
@@ -231,7 +213,7 @@
           <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
             @csrf
           </form>
-           @endauth
+        @endauth
 
               </ul>
             </div>
@@ -241,37 +223,51 @@
         <div class="col-auto">
           <ul class="list-unstyled d-flex m-0 mt-3 mt-xl-0">
             @auth
+            <li>
+              <a href="{{ route('user.wishlist') }}" class="text-uppercase mx-3" id="wishlist-link">
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                  <use xlink:href="#heart"></use>
+                </svg>
+                <span class="wishlist-count" id="wishlist-count">
+                  ({{ $wishlistCount ?? 0 }})
+                </span>
+              </a>
+            </li>
+            
+          
+          
+          
+          
+
         <li>
-          <a href="{{ route('user.wishlist') }}" class="text-uppercase mx-3" id="wishlist-link">
-            <svg width="24" height="24" viewBox="0 0 24 24">
-                <use xlink:href="#heart"></use>
-            </svg>
-            <span class="wishlist-count" id="wishlist-count">(0)</span>
-        </a>
-        
-        </li>
-        <li>
-          <a href="{{ route('cart.view') }} " class="text-uppercase mx-3">
-          <svg width="24" height="24" viewBox="0 0 24 24">
-            <use xlink:href="#cart"></use>
-          </svg>
-          <span class="cart-count">({{ session('cart') ? count(session('cart')) : 0 }})</span>
+          <a href="{{ route('cart.view') }}" class="text-uppercase mx-3">
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                  <use xlink:href="#cart"></use>
+              </svg>
+              <span class="cart-count">
+                  {{--جلب عدد المنتجات من قاعدة البيانات ن --}}
+                  @php
+                      $cartCount = \App\Models\CartItem::where('user_id', auth()->id())->count();
+                  @endphp
+                  ({{ $cartCount }})
+              </span>
           </a>
-        </li>
+      </li>
+      
 
         {{-- التحقق من وجود الملف الشخصي في الرابط
         بتوجيه المستخدم بشكل صحيح بناءً على حالة الملف الشخصي. --}}
-          @auth
-          <li>
-              <a href="{{ route(auth()->user()->profile ? 'user.profile.edit' : 'user.profile.create') }}">
-                  {{-- <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color"> 
-                      <use xlink:href="#user"></use>
-                  </svg> --}}
-                  {{  auth()->user()->name }} 
-              </a>
-          </li>
-          @endauth
-       {{-- ************************************************* --}}
+        @auth
+      <li>
+        <a href="{{ route(auth()->user()->profile ? 'user.profile.edit' : 'user.profile.create') }}">
+        {{-- <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color">
+        <use xlink:href="#user"></use>
+        </svg> --}}
+        {{  auth()->user()->name }}
+        </a>
+      </li>
+    @endauth
+        {{-- ************************************************* --}}
       @endauth
             <li class="search-box">
               <a href="#" class="search-button mx-3">
@@ -287,46 +283,4 @@
 
     </div>
   </nav>
-  <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    // تحميل الـ wishlist من localStorage
-    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-
-    // تحديث العداد لعدد المنتجات في الـ wishlist
-    const wishlistCount = wishlist.length;
-    document.getElementById('wishlist-count').textContent = `(${wishlistCount})`;
-});
-
-function addToWishlist(productId, productName, productPrice, productImage) {
-    // الحصول على الـ wishlist من localStorage
-    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-
-    // التحقق إذا كان المنتج موجود بالفعل
-    const productExists = wishlist.some(item => item.productId === productId);
-    if (productExists) {
-        alert('This product is already in your wishlist.');
-        return;
-    }
-
-    // إضافة المنتج الجديد إلى الـ wishlist
-    wishlist.push({
-        productId: productId,
-        productName: productName,
-        productPrice: productPrice,
-        productImage: productImage
-    });
-
-    // تخزين الـ wishlist في localStorage
-    localStorage.setItem('wishlist', JSON.stringify(wishlist));
-
-    // تحديث العداد بعد إضافة المنتج
-    const wishlistCount = wishlist.length;
-    document.getElementById('wishlist-count').textContent = `(${wishlistCount})`;
-
-    // عرض رسالة تأكيد
-    alert('Product added to your wishlist!');
-}
-</script>
-
  
-  

@@ -92,8 +92,12 @@ Route::middleware('auth')->group(function () {
     // إضافة Route لتحديث المراجعة
     Route::put('product/{productId}/review/update', [ProductController::class, 'updateReview'])->name('review.update');
     Route::post('/contact/store', [ContactController::class, 'store'])->name('user.contact.store');
-    Route::get('/wishlist', [ShopController::class, 'wishlist'])->name('user.wishlist');
-
+    Route::get('wishlist', [ShopController::class, 'wishlist'])->name('user.wishlist');
+    Route::post('wishlist/{productId}/add-to-cart', [ShopController::class, 'addToCartFromWishlist'])->name('wishlist.add-to-cart');
+    Route::delete('wishlist/{productId}/remove', [ShopController::class, 'removeFromWishlist'])->name('wishlist.remove');
+    Route::get('/wishlist/add/{productId}', [ShopController::class, 'addToWishlist'])->name('user.addToWishlist');    
+    Route::get('/navbar', [ShopController::class, 'showNavbar'])->name('user.navbar');
+ 
 });
 
 require __DIR__.'/auth.php';

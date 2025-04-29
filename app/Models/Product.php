@@ -35,6 +35,16 @@ public function orders()
     // أو إذا كانت العلاقة One-to-Many
     // return $this->hasMany(Order::class);
 }
+public function cartItems()
+{
+    return $this->hasMany(CartItem::class); // ربط المنتج مع سلة الشراء
+}
+
+// في موديل Product
+public function usersWhoWished()
+{
+    return $this->belongsToMany(User::class, 'wishlist_user');
+}
 
 
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 
+
 class User extends Authenticatable
 {
     use HasFactory, SoftDeletes, Notifiable;
@@ -33,6 +34,17 @@ class User extends Authenticatable
     public function reviews()
 {
     return $this->hasMany(Review::class);
+}
+
+public function cartItems()
+{
+    return $this->hasMany(CartItem::class); // ربط المستخدم بسلة الشراء
+}
+
+// في موديل User
+public function wishlist()
+{
+    return $this->belongsToMany(Product::class, 'wishlist_user');
 }
 
 }

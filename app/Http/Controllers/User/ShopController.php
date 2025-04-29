@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Models\CartItem;
 
 class ShopController extends Controller
 {
@@ -47,50 +48,50 @@ class ShopController extends Controller
 //             ADD TO CART 
     
 
-    public function addToCart(Request $request)
+public function addToCart(Request $request)
 {
     $product = Product::findOrFail($request->product_id);
     $quantity = $request->input('quantity', 1);
 
-   // استخدام localStorage لتخزين السلة
-   $cart = json_decode($request->cookie('cart', '[]'), true); // قراءة السلة من الكوكيز إذا كانت موجودة
+    // جلب الصورة المرتبطة بالمنتج (أول صورة من جدول product_images)
+    $productImage = $product->images()->first();
 
+    // تحقق إذا كان المنتج موجود في السلة للمستخدم الحالي
+    $cartItem = CartItem::where('user_id', auth()->id())
+                        ->where('product_id', $product->id)
+                        ->first();
 
-    // إذا كان المنتج موجود في السلة، زود الكمية
-    if (isset($cart[$product->id])) {
-        $cart[$product->id]['quantity'] += $quantity;
+    // إذا كان المنتج موجودًا في السلة، قم بتحديث الكمية
+    if ($cartItem) {
+        $cartItem->quantity += $quantity;
+        $cartItem->save();
     } else {
-        // إذا كان المنتج غير موجود، أضفه إلى السلة
-        $cart[$product->id] = [
-            'product_id' => $product->id,  // تأكد من أن الـ product_id موجود هنا
-            'name' => $product->name,
-            'price' => $product->price,
+        // إذا لم يكن المنتج موجودًا في السلة، أضفه
+        CartItem::create([
+            'user_id' => auth()->id(),
+            'product_id' => $product->id,
             'quantity' => $quantity,
-            'image' => $product->image ?? null
-        ];
+            'price' => $product->price,
+            'image' => $productImage ? $productImage->image_path : null, // إضافة الصورة إلى السلة
+        ]);
     }
 
-    // وضع السلة في session
-    session()->put('cart', $cart);
-
-    // إعادة التوجيه لصفحة السلة
     return redirect()->route('cart.view');
 }
+
+
 // *******************************************************************
 //                  VIEW   CART
 
 public function viewCart()
 {
-    // استرجاع السلة من الـ session
-    $cart = session()->get('cart', []);
+    $cartItems = CartItem::where('user_id', auth()->id())->get();
+    $products = Product::whereIn('id', $cartItems->pluck('product_id'))->get();
 
-    // جلب جميع المنتجات الموجودة في السلة بناءً على الـ product_id
-    $productIds = array_keys($cart); // استخراج جميع معرّفات المنتجات في السلة
-    $products = Product::whereIn('id', $productIds)->get(); // جلب المنتجات من قاعدة البيانات
-
-    // إعادة عرض السلة مع المنتجات
-    return view('user.cart', compact('cart', 'products'));
+    return view('user.cart', compact('cartItems', 'products'));
 }
+
+
 
     
 
@@ -99,22 +100,17 @@ public function viewCart()
 // وأخيرًا، يتم تحديث السلة في الـ session
 public function removeFromCart($product_id)
 {
-    // استرجاع السلة من الـ session
-    $cart = session()->get('cart', []);
+    $cartItem = CartItem::where('user_id', auth()->id())
+                        ->where('product_id', $product_id)
+                        ->first();
 
-    // تحقق إذا كان المنتج موجود في السلة
-    if(isset($cart[$product_id])) {
-        // حذف المنتج من السلة
-        unset($cart[$product_id]);
-
-        // تحديث السلة في الـ session
-        session()->put('cart', $cart);
-        
+    if ($cartItem) {
+        $cartItem->delete();
     }
 
-    // إعادة التوجيه لصفحة السلة
     return redirect()->route('cart.view');
 }
+
 
 
 // هذه الدالة تستخدم لتحديث كمية المنتج في السلة
@@ -125,26 +121,27 @@ public function removeFromCart($product_id)
 // يتم استخدام الـ session لتخزين السلة
 public function updateCart(Request $request, $productId)
 {
-    $cart = session()->get('cart', []);
+    // البحث عن العنصر في السلة للمستخدم الحالي
+    $cartItem = CartItem::where('user_id', auth()->id())
+                        ->where('product_id', $productId)
+                        ->first();
 
-    // إذا كان المنتج موجود في السلة، تحديث الكمية
-    if (isset($cart[$productId])) {
-        $cart[$productId]['quantity'] = $request->quantity;
+    if ($cartItem) {
+        // تحديث الكمية في السلة
+        $cartItem->quantity = $request->quantity;
+        $cartItem->save();
     }
 
-    // تخزين السلة في الجلسة
-    session()->put('cart', $cart);
+    // حساب المجموع الكلي بعد التحديث
+    $cartItems = CartItem::where('user_id', auth()->id())->get();
+    $cartTotal = $cartItems->sum(function ($item) {
+        $product = Product::find($item->product_id);
+        return $item->quantity * $product->price;
+    });
 
-    // حساب إجمالي السعر بعد التحديث
-    $cartCollection = collect($cart);
-    $cartTotal = number_format($cartCollection->sum(function ($item) {
-        $product = Product::find($item['product_id']);
-        return $item['quantity'] * $product->price;
-    }), 2);
-
-    // حساب السعر الفرعي للمنتج
+    // حساب السعر الفرعي للمنتج المحدد
     $product = Product::find($productId);
-    $totalPrice = number_format($product->price * $cart[$productId]['quantity'], 2);
+    $totalPrice = number_format($product->price * $cartItem->quantity, 2);
 
     // إرسال البيانات المحدثة كـ JSON
     return response()->json([
@@ -152,6 +149,8 @@ public function updateCart(Request $request, $productId)
         'cartTotal' => $cartTotal
     ]);
 }
+
+
 
 // هذه الدالة تستخدم لحساب عدد العناصر في السلة
 // يتم استرجاع السلة من الجلسة، ثم حساب عدد العناصر فيها
@@ -179,24 +178,24 @@ public function checkout(Request $request)
         $user = auth()->user();
         $profile = $user->profile;
 
-        // استرجاع السلة من الجلسة
-        $cart = session()->get('cart', []);
+        // استرجاع السلة من قاعدة البيانات بدلاً من الجلسة
+        $cartItems = CartItem::where('user_id', auth()->id())->get();
 
-        if (empty($cart)) {
+        // التأكد من أن السلة ليست فارغة
+        if ($cartItems->isEmpty()) {
             return redirect()->route('cart.view')->with('error', 'Your cart is empty!');
         }
 
         // حساب السعر الإجمالي
-        $cartCollection = collect($cart);
-        $cartTotal = $cartCollection->sum(function ($item) {
-            $product = Product::find($item['product_id']);
-            return $item['quantity'] * $product->price;
+        $cartTotal = $cartItems->sum(function ($item) {
+            $product = Product::find($item->product_id);
+            return $item->quantity * $product->price;
         });
 
         // إذا كان الملف الشخصي موجودًا، يمكننا استخدامه مباشرة
         if ($profile) {
             // إرسال بيانات الـ Profile والـ Cart Total للـ View
-            return view('user.checkout', compact('cart', 'cartTotal', 'profile'));
+            return view('user.checkout', compact('cartItems', 'cartTotal', 'profile'));
         } else {
             return redirect()->route('user.profile.create')->with('error', 'Please complete your profile to proceed with the checkout.');
         }
@@ -204,6 +203,7 @@ public function checkout(Request $request)
         return redirect()->route('login')->with('error', 'You need to be logged in to proceed with the checkout.');
     }
 }
+
 
 
 
@@ -233,27 +233,21 @@ public function checkoutRedirect(Request $request)
 }
 
 
+
 //************* */  CHECKOUT REDIRECT TO PROFILE EDIT **************
 // هذه الدالة تستخدم لإعادة توجيه المستخدم إلى صفحة تعديل الملف الشخصي
 public function redirectToProfileEdit()
 {
-    // استرجاع بيانات الـ cart من الجلسة
-    $cart = session()->get('cart', []);
-    $cartTotal = 0;
+    // استرجاع بيانات الـ cart من قاعدة البيانات بدلاً من الـ session
+    $cartItems = CartItem::where('user_id', auth()->id())->get();
+    $cartTotal = $cartItems->sum(function ($item) {
+        $product = Product::find($item->product_id);
+        return $item->quantity * $product->price;
+    });
 
-    // حساب المجموع الكلي للـ cart
-    foreach ($cart as $item) {
-        $cartTotal += $item['price'] * $item['quantity'];
-    }
-
-    // تخزين الـ cart و الـ cartTotal في الجلسة
-    session(['cart' => $cart]);
-    session(['cartTotal' => $cartTotal]);
-
-    // إعادة التوجيه إلى صفحة تعديل الملف الشخصي
+    // إرسال الـ cart و الـ cartTotal إلى صفحة تعديل الملف الشخصي
     return redirect()->route('user.profile.edit');
 }
-
 
 
 //************* */  UPDATE PROFILE **************
@@ -277,57 +271,135 @@ public function updateProfile(Request $request)
 
 public function placeOrder(Request $request)
 {
-    // استرجاع السلة من الجلسة
-    $cart = session()->get('cart', []);
+    // استرجاع السلة من قاعدة البيانات
+    $cartItems = CartItem::where('user_id', auth()->id())->get();
 
     // التأكد من أن السلة غير فارغة
-    if (empty($cart)) {
+    if ($cartItems->isEmpty()) {
         return redirect()->route('cart.view')->with('error', 'Your cart is empty!');
     }
 
     // حساب المجموع الكلي للطلب
     $total = 0;
-    foreach ($cart as $item) {
-        $total += $item['price'] * $item['quantity'];
+    foreach ($cartItems as $item) {
+        $total += $item->quantity * $item->price;
     }
 
     // إنشاء طلب جديد في جدول 'orders'
     $order = Order::create([
-        'user_id' => auth()->id(), // المستخدم الحالي
+        'user_id' => auth()->id(),
         'total' => $total,
-        'status' => 'pending', // حالة الطلب (قيد الانتظار)
+        'status' => 'pending',
     ]);
 
     // إضافة العناصر إلى جدول 'order_items'
-    foreach ($cart as $item) {
-        $order->items()->create([  // استخدام العلاقة لإضافة العناصر
-            'product_id' => $item['product_id'], // معرّف المنتج
-            'quantity' => $item['quantity'],
-            'price' => $item['price'],
+    foreach ($cartItems as $item) {
+        $order->items()->create([
+            'product_id' => $item->product_id,
+            'quantity' => $item->quantity,
+            'price' => $item->price,
         ]);
     }
 
-    // تفريغ السلة بعد إتمام الطلب
-    session()->forget('cart');
+    // إضافة المنتجات المشتراة إلى الـ Order من الـ Wishlist (حذفها بعدها من الـ Wishlist)
+    $wishlist = auth()->user()->wishlist;
 
-    // إعادة التوجيه إلى صفحة المتجر مع رسالة نجاح
+    foreach ($wishlist as $product) {
+        // إضافة المنتج إلى الطلب
+        $order->items()->create([
+            'product_id' => $product->id,
+            'quantity' => 1, // أو يمكنك تحديد الكمية إذا كانت مختلفة
+            'price' => $product->price,
+        ]);
+        // حذف المنتج من الـ Wishlist
+        auth()->user()->wishlist()->detach($product->id);
+    }
+
+    // تفريغ السلة بعد إتمام الطلب
+    CartItem::where('user_id', auth()->id())->delete();
+
     return redirect()->route('user.shop-sidebar')->with('success', 'Your order has been placed successfully!');
 }
+
 
 
 public function wishlist()
 {
     // إذا كان المستخدم مسجل الدخول
-    $user_id = auth()->id();
+    $user = auth()->user();
 
-    // افتراضياً الـ wishlist فارغة إذا لم تكن موجودة
-    $wishlist = json_decode(request()->cookie('wishlist_'.$user_id), true) ?? [];
+    // جلب المنتجات من الـ wishlist المرتبطة بالمستخدم
+    $wishlist = $user->wishlist;
+    
+  
 
-    return view('user.wishlist', compact('wishlist', 'user_id'));
+    // عرض صفحة الـ wishlist مع البيانات
+    return view('user.wishlist', compact('wishlist'));
 }
 
 
 
+
+public function addToWishlist($productId)
+{
+    // التأكد من أن المستخدم مسجل الدخول
+    if (!auth()->check()) {
+        return redirect()->route('login')->with('error', 'You need to be logged in to add products to your wishlist.');
+    }
+
+    $user = auth()->user();
+    $product = Product::findOrFail($productId);
+
+    // تحقق إذا كان المنتج موجودًا بالفعل في الـ wishlist
+    if ($user->wishlist()->where('product_id', $productId)->exists()) {
+        return redirect()->back()->with('error', 'This product is already in your wishlist.');
+    }
+
+    // إضافة المنتج إلى الـ wishlist
+    $user->wishlist()->attach($productId);
+
+    return redirect()->route('user.wishlist')->with('success', 'Product added to your wishlist!');
+}
+
+
+public function addToCartFromWishlist($productId)
+{
+    // جلب المنتج من الـ Wishlist
+    $product = Product::findOrFail($productId);
+
+    // إضافة المنتج إلى السلة
+    CartItem::create([
+        'user_id' => auth()->id(),
+        'product_id' => $product->id,
+        'quantity' => 1,  // يمكنك تحديد الكمية حسب الحاجة
+        'price' => $product->price,
+    ]);
+
+    // إزالة المنتج من الـ Wishlist
+    auth()->user()->wishlist()->detach($productId);
+
+    return redirect()->route('cart.view')->with('success', 'Product added to cart.');
+}
+
+public function removeFromWishlist($productId)
+{
+    // إزالة المنتج من الـ Wishlist
+    auth()->user()->wishlist()->detach($productId);
+
+    return redirect()->route('user.wishlist')->with('success', 'Product removed from wishlist.');
+}
+
+public function showNavbar()
+{
+    if (auth()->check()) {
+        $user = auth()->user();
+        $wishlistCount = $user->wishlist()->count();
+        dd($wishlistCount); // سيتم طباعة القيمة في المتصفح
+        return view('user.navbar', compact('wishlistCount'));
+    } else {
+        return view('user.navbar', ['wishlistCount' => 0]);
+    }
+}
 
 
 }

@@ -56,7 +56,7 @@
                                         <th>Subtotal</th>
                                         <td data-title="Subtotal">
                                             <span class="price-amount amount ps-5">
-                                                <bdi><span class="price-currency-symbol">$</span>{{ $cartTotal }}</bdi>
+                                                <bdi><span class="price-currency-symbol"> Jd </span>{{ $cartTotal }}</bdi>
                                             </span>
                                         </td>
                                     </tr>
@@ -64,7 +64,7 @@
                                         <th>Total</th>
                                         <td data-title="Total">
                                             <span class="price-amount amount ps-5">
-                                                <bdi><span class="price-currency-symbol">$</span>{{ $cartTotal }}</bdi>
+                                                <bdi><span class="price-currency-symbol"> Jd </span>{{ $cartTotal }}</bdi>
                                             </span>
                                         </td>
                                     </tr>

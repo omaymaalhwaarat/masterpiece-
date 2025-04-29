@@ -13,9 +13,10 @@
             </div>
           </div>
 
-          @foreach($cart as $productId => $item)
+          @foreach($cartItems as $item)
           @php
-              $product = $products->firstWhere('id', $productId); // جلب المنتج من الـ products
+              $product = $products->firstWhere('id', $item->product_id); // جلب المنتج من الـ products
+              $productImage = $product->images->first(); // جلب أول صورة من المنتج
           @endphp
           
           @if ($product)
@@ -25,7 +26,7 @@
                           <div class="cart-info d-flex flex-wrap align-items-center">
                               <div class="col-lg-5">
                                   <div class="card-image">
-                                      <img src="{{ asset($product->images->first()->image_path) }}" alt="{{ $product->name }}" class="img-fluid">
+                                      <img src="{{ asset($productImage->image_path) }}" alt="{{ $product->name }}" class="img-fluid">
                                   </div>
                               </div>
                               <div class="col-lg-7">
@@ -43,35 +44,35 @@
                       <div class="col-lg-6 col-md-7">
                           <div class="row d-flex">
                               <div class="col-md-4">
-                                
-                                  <div class="input-group product-qty">
-                                      <span class="input-group-btn">
-                                        <button type="button" class="quantity-left-minus btn btn-light btn-number" data-type="minus" data-product-id="{{ $product->id }}">
+                                <div class="input-group product-qty">
+                                  <span class="input-group-btn">
+                                      <button type="button" class="quantity-left-minus btn btn-light btn-number" data-type="minus" data-product-id="{{ $product->id }}">
                                           <svg width="16" height="16">
                                               <use xlink:href="#minus"></use>
                                           </svg>
                                       </button>
-                                      </span>
-                                      <input type="text" id="quantity-{{ $product->id }}" name="quantity" class="form-control input-number text-center" value="{{ $item['quantity'] }}" min="1" max="{{ $product->stock }}">
-                                      <span class="input-group-btn">
-                                        <button type="button" class="quantity-right-plus btn btn-light btn-number" data-type="plus" data-product-id="{{ $product->id }}">
+                                  </span>
+                                  <input type="text" id="quantity-{{ $product->id }}" name="quantity" class="form-control input-number text-center" value="{{ $item->quantity }}" min="1" max="{{ $product->stock }}">
+                                  <span class="input-group-btn">
+                                      <button type="button" class="quantity-right-plus btn btn-light btn-number" data-type="plus" data-product-id="{{ $product->id }}">
                                           <svg width="16" height="16">
                                               <use xlink:href="#plus"></use>
                                           </svg>
                                       </button>
-                                      </span>
-                                  </div>
+                                  </span>
+                              </div>
+                              
                               </div>
                               <div class="col-md-8 text-center">
                                   <div class="total-price">
-                                      <span class="money text-dark" id="total-price-{{ $product->id }}">jd{{ $product->price * $item['quantity'] }}</span>
+                                      <span class="money text-dark" id="total-price-{{ $product->id }}">jd{{ $product->price * $item->quantity }}</span>
                                   </div>
                               </div>
                           </div>
                       </div>
                       <div class="col-lg-1 col-md-2">
                         <div class="cart-remove">
-                            <form action="{{ route('cart.remove', $productId) }}" method="POST">
+                            <form action="{{ route('cart.remove', $item->product_id) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn">
@@ -103,13 +104,11 @@
                       <bdi>
                         <span class="price-currency-symbol">jd</span>
                         @php
-                          // تحويل السلة إلى Collection
-                          $cartCollection = collect($cart);
+                          $cartCollection = collect($cartItems);
                         @endphp
                         {{ number_format($cartCollection->sum(function ($item) use ($products) {
-                          // استخدام المفتاح $productId الذي هو المفتاح في السلة
-                          $product = $products->firstWhere('id', $item['product_id']);
-                          return $item['quantity'] * $product->price;
+                          $product = $products->firstWhere('id', $item->product_id);
+                          return $item->quantity * $product->price;
                         }), 2) }}
                       </bdi>
                     </span>
@@ -122,9 +121,8 @@
                       <bdi>
                         <span class="price-currency-symbol">jd</span>
                         {{ number_format($cartCollection->sum(function ($item) use ($products) {
-                          // حساب total
-                          $product = $products->firstWhere('id', $item['product_id']);
-                          return $item['quantity'] * $product->price;
+                          $product = $products->firstWhere('id', $item->product_id);
+                          return $item->quantity * $product->price;
                         }), 2) }}
                       </bdi>
                     </span>
@@ -137,7 +135,6 @@
           <div class="button-wrap row g-2">
             <div class="col-md-6"><button class="btn btn-dark text-uppercase btn-rounded-none w-100">Update Cart</button></div>
             <div class="col-md-6"><button class="btn btn-dark text-uppercase btn-rounded-none w-100">Continue Shopping</button></div>
-            {{-- <div class="col-md-12"><button class="btn btn-primary text-uppercase btn-rounded-none w-100" >Proceed to Checkout</button></div> --}}
             <div class="col-md-12">
               <a href="{{ route('user.checkout.redirect') }}" class="btn btn-primary text-uppercase btn-rounded-none w-100">
                   Proceed to Checkout
@@ -173,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function() {
             // تحديث السعر الكلي للسلة
             const cartTotalElement = document.querySelector('#cart-total');
             if (cartTotalElement) {
-                cartTotalElement.textContent = `JD ${data.cartTotal}`; // تحديث الـ Total في الصفحة
+                cartTotalElement.textContent = `JD ${data.cartTotal}`;
             }
         })
         .catch(error => console.error('Error:', error));
@@ -186,6 +183,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const quantityInput = document.querySelector(`#quantity-${productId}`);
             let quantity = parseInt(quantityInput.value);
             quantity++; // زيادة الكمية
+            quantityInput.value = quantity; // تحديث الكمية في المدخل مباشرة
             updateCart(productId, quantity); // تحديث الكمية في السلة
         });
     });
@@ -198,17 +196,12 @@ document.addEventListener("DOMContentLoaded", function() {
             let quantity = parseInt(quantityInput.value);
             if (quantity > 1) {
                 quantity--; // تقليل الكمية
+                quantityInput.value = quantity; // تحديث الكمية في المدخل مباشرة
                 updateCart(productId, quantity); // تحديث الكمية في السلة
             }
         });
     });
 });
-
-
-
-
-
 </script>
+
 @include('user.footer')
-
-

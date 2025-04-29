@@ -13,61 +13,76 @@
     <img src="images/banner-large-7.jpg" class="jarallax-img">
     <div class="py-5">
         <div class="container">
-            <div class="row mt-5">
-                <div class="d-flex flex-wrap flex-column justify-content-center align-items-center my-5 py-5 text-white">
-                    <h1 class="page-title text-uppercase mt-5 display-4">Login</h1>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<div class="py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card p-4">
-                    <form method="POST" action="{{ route('login') }}">
-                        @csrf
-
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" id="email" class="form-control" name="email" required autofocus value="{{ old('email') }}">
-                            @error('email') <div class="text-danger">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" id="password" class="form-control" name="password" required>
-                            @error('password') <div class="text-danger">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" id="remember_me" name="remember" class="form-check-input">
-                            <label for="remember_me" class="form-check-label">Remember me</label>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">Login</button>
-
-                        @if (Route::has('password.request'))
-                            <div class="mt-3 text-center">
-                                <a href="{{ route('password.request') }}" class="text-decoration-none">Forgot your password?</a>
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="card p-4">
+                        <form method="POST" action="{{ route('login') }}">
+                            @csrf
+    
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" id="email" class="form-control" name="email" required autofocus value="{{ old('email') }}">
+                                @error('email') <div class="text-danger">{{ $message }}</div> @enderror
                             </div>
-                        @endif
-
-                    </form>
-
-                    <div class="mt-4 text-center">
-                        <p class="text-sm text-gray-600">
-                            Don't have an account? <a href="{{ route('register') }}" class="text-indigo-600">Register now</a>
-                        </p>
+    
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" id="password" class="form-control" name="password" required>
+                                @error('password') <div class="text-danger">{{ $message }}</div> @enderror
+                            </div>
+    
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" id="remember_me" name="remember" class="form-check-input">
+                                <label for="remember_me" class="form-check-label">Remember me</label>
+                            </div>
+    
+                            <button type="submit" class="btn btn-primary w-100">Login</button>
+    
+                            @if (Route::has('password.request'))
+                                <div class="mt-3 text-center">
+                                    <a href="{{ route('password.request') }}" class="text-decoration-none">Forgot your password?</a>
+                                </div>
+                            @endif
+    
+                        </form>
+    
+                        <div class="mt-4 text-center">
+                            <p class="text-sm text-gray-600">
+                                Don't have an account? <a href="{{ route('register') }}" class="text-indigo-600">Register now</a>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    {{-- <div class="py-5">
+        <div class="container">
+            <section class="newsletter my-5" style="background: url(images/newsletter-image.jpg) no-repeat;">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8 text-center text-white">
+                            <h2 class="display-4">Subscribe to our Newsletter</h2>
+                            <p class="lead">Get the latest updates and offers directly to your inbox.</p>
+                            <form action="#" method="POST">
+                                <input type="email" class="form-control mb-3" placeholder="Enter your email" required>
+                                <button type="submit" class="btn btn-primary">Subscribe</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div> --}}
+</section>
 
+
+
+
+
+
+
+{{-- 
 <section class="newsletter my-5" style="background: url(images/newsletter-image.jpg) no-repeat;">
     <div class="container">
         <div class="row justify-content-center">
@@ -81,7 +96,7 @@
             </div>
         </div>
     </div>
-</section>
+</section> --}}
 
 <!-- Additional CSS -->
 <style>

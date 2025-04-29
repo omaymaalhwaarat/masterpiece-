@@ -1,17 +1,5 @@
 @include('user.navbar')
 
-@if (session('success'))
-  <div class="position-fixed top-50 start-50 translate-middle" style="z-index: 1055;">
-    <div id="profileToast" 
-         class="toast show text-center border-0" 
-         role="alert" 
-         style="background-color: rgba(255, 255, 255, 0.85); color: #c85c8e; font-family: 'Poppins', sans-serif; font-size: 1.1rem; padding: 1rem 2rem; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1);">
-      {{ session('success') }}
-    </div>
-  </div>
-@endif
-
-
 <section class="hero-section jarallax">
   <img src="images/banner-large-7.jpg" class="jarallax-img">
   <div class="py-5">
@@ -30,8 +18,14 @@
     <div class="row flex-md-row-reverse g-5">
       <main class="main-content col-md-9">
         <div class="row py-2">
-          <div class="col-md-9">
+          <div class="col-md-3">
             <span>Showing 1–12 of 55 results</span>
+          </div>
+          <div class="col-md-6">
+            <form action="{{ route('user.shop-sidebar') }}" method="GET">
+              <input class="border-0" type="text" name="search" value="{{ request('search') }}" placeholder="Search products...">
+              <button class="border-0" type="submit">Search</button>
+            </form>
           </div>
           <div class="col-md-3">
             <form action="{{ route('user.shop-sidebar') }}" method="GET">
@@ -41,7 +35,6 @@
                 <option value="best_sellers">Best Sellers</option>
               </select>
             </form>
-            
           </div>
         </div>
 
@@ -50,14 +43,14 @@
             <div class="col-md-4 mb-5 product-item">
               <div class="image-holder position-relative">
                 <a href="{{ route('user.product.show', $product->id) }}">
-                  <img src="{{ asset( $product->images->first()->image_path) }}" alt="categories" class="product-image img-fluid">
+                  <img src="{{ asset($product->images->first()->image_path) }}" alt="categories" class="product-image img-fluid" style="border-radius: 5%">
                 </a>
-                <a href="javascript:void(0)" class="btn-icon btn-wishlist" onclick="addToWishlist({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ asset($product->images->first()->image_path) }}')">
+                <!-- إضافة المنتج إلى الـ Wishlist عبر الرابط في الـ Controller -->
+                <a href="{{ route('user.addToWishlist', $product->id) }}" class="btn-icon btn-wishlist">
                   <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color">
-                      <use xlink:href="#heart"></use>
+                    <use xlink:href="#heart"></use>
                   </svg>
-              </a>
-                
+                </a>
                 <a href="wishlist.html" class="btn-icon btn-cart">
                   <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color">
                     <use xlink:href="#cart"></use>
@@ -68,7 +61,6 @@
                     <a href="{{ route('user.product.show', $product->id) }}">{{ $product->name }}</a>
                   </h5>
 
-                  <!-- عرض السعر الأصلي والسعر بعد الخصم -->
                   @if($product->discount_price)
                     <span class="original-price text-decoration-line-through">${{ number_format($product->price, 2) }}</span>
                     <span class="discounted-price">${{ number_format($product->discount_price, 2) }}</span>
@@ -107,9 +99,7 @@
           <div class="sidebar-categories border-animation-left mb-5">
             <div class="text-dark text-uppercase mb-4">Browse By Categories:</div>
             <ul class="list-unstyled">
-              <li>
-                <a href="#" class="item-anchor">All</a>
-              </li>
+              <li><a href="#" class="item-anchor">All</a></li>
               @foreach ($categories as $category)
                 <li>
                   <a href="{{ route('user.shop-sidebar', ['category_id' => $category->id]) }}" class="item-anchor">{{ $category->name }}</a>
@@ -121,154 +111,83 @@
           <div class="product-filter padding-small">
             <div class="text-dark text-uppercase">Filter By:</div>
             <div class="accordion" id="accordionExample">
-                <!-- Price Filter -->
-                <!-- Price Filter -->
-<!-- Price Filter -->
-<div class="accordion-item">
-  <div class="accordion-header" id="heading-one">
-    <button class="accordion-button py-3" type="button" data-bs-toggle="collapse"
-      data-bs-target="#collapse-one" aria-expanded="true" aria-controls="collapse-one">
-      <span class="accordion-title fs-3">Price</span>
-    </button>
-  </div>
-  <div id="collapse-one" class="accordion-collapse collapse show" aria-labelledby="heading-one">
-    <div class="accordion-body">
-      <form action="{{ route('user.shop-sidebar') }}" method="GET">
-        <div class="mb-3">
-          <label for="price_range" class="form-label">Select Price Range</label>
-          <select name="price_range" class="form-select" aria-label="Price Range">
-            <option value="10" {{ request('price_range') == '10' ? 'selected' : '' }}>&lt; $10</option>
-            <option value="20-40" {{ request('price_range') == '20-40' ? 'selected' : '' }}>$20 - $40</option>
-            <option value="40-50" {{ request('price_range') == '40-50' ? 'selected' : '' }}>$40 - $50</option>
-            <option value="50-60" {{ request('price_range') == '50-60' ? 'selected' : '' }}>$50 - $60</option>
-            <option value="60" {{ request('price_range') == '60' ? 'selected' : '' }}>&gt; $60</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary mt-3">Apply</button>
-      </form>
-    </div>
-  </div>
-</div>
-
-
-        
-                <!-- Best Seller Filter -->
-                <div class="accordion-item">
-                    <div class="accordion-header" id="heading-three">
-                        <button class="accordion-button py-3" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapse-three" aria-expanded="true" aria-controls="collapse-three">
-                            <span class="accordion-title fs-3">Best Seller</span>
-                        </button>
-                    </div>
-                    <div id="collapse-three" class="accordion-collapse collapse show" aria-labelledby="heading-three">
-                        <div class="accordion-body">
-                            <form action="{{ route('user.shop-sidebar') }}" method="GET">
-                                <div>
-                                    <label for="best_seller">
-                                        <input type="checkbox" name="best_seller" value="1" {{ request('best_seller') ? 'checked' : '' }}>
-                                        Best Seller
-                                    </label>
-                                </div>
-                                <button type="submit" class="btn btn-primary mt-3">Apply</button>
-                            </form>
-                        </div>
-                    </div>
+              <!-- Price Filter -->
+              <div class="accordion-item">
+                <div class="accordion-header" id="heading-one">
+                  <button class="accordion-button py-3" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse-one" aria-expanded="true" aria-controls="collapse-one">
+                    <span class="accordion-title fs-3">Price</span>
+                  </button>
                 </div>
-        
-                <!-- New Arrivals Filter -->
-                <div class="accordion-item">
-                    <div class="accordion-header" id="heading-four">
-                        <button class="accordion-button py-3" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapse-four" aria-expanded="true" aria-controls="collapse-four">
-                            <span class="accordion-title fs-3">New Arrivals</span>
-                        </button>
-                    </div>
-                    <div id="collapse-four" class="accordion-collapse collapse show" aria-labelledby="heading-four">
-                        <div class="accordion-body">
-                            <a href="#">HYDRA BEAUTY MICRO CRÈME YEUX Illuminating <span class="count">(100)</span></a>
-                            <a href="#">GET-BACK Targeted Body Acne Spray <span class="count">(80)</span></a>
-                            <a href="#">Day & Night Neck Treatment Duo <span class="count">(90)</span></a>
-                            <a href="#">B-Goldi Bright Drops <span class="count">(70)</span></a>
-                            <a href="#">LE GEL COAT Longwear Top Coat <span class="count">(50)</span></a>
-                        </div>
-                    </div>
+
+                <div id="collapse-one" class="accordion-collapse collapse show" aria-labelledby="heading-one">
+                  <div class="accordion-body">
+                    <form action="{{ route('user.shop-sidebar') }}" method="GET">
+                      <div class="mb-3">
+                        <label for="price_range" class="form-label">Select Price Range</label>
+                        <select name="price_range" class="form-select" aria-label="Price Range" onchange="this.form.submit()">
+                          <option value="10.00" {{ request('price_range') == '10.00' ? 'selected' : '' }}>&lt; $10</option>
+                          <option value="20.00-40.00" {{ request('price_range') == '20.00-40.00' ? 'selected' : '' }}>$20 - $40</option>
+                          <option value="40.00-50.00" {{ request('price_range') == '40.00-50.00' ? 'selected' : '' }}>$40 - $50</option>
+                          <option value="50.00-60.00" {{ request('price_range') == '50.00-60.00' ? 'selected' : '' }}>$50 - $60</option>
+                          <option value="60.00" {{ request('price_range') == '60' ? 'selected' : '' }}>&gt; $60</option>
+                        </select>
+                      </div>
+                    </form>
+                  </div>
                 </div>
-        
-                <!-- Reset Filters -->
-                <a href="{{ route('user.shop-sidebar') }}" class="btn-link text-uppercase item-anchor">Reset All Filters</a>
+              </div>
+
+              <!-- Best Seller Filter -->
+              <div class="accordion-item">
+                <div class="accordion-header" id="heading-three">
+                  <button class="accordion-button py-3" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse-three" aria-expanded="true" aria-controls="collapse-three">
+                    <span class="accordion-title fs-3">Best Seller</span>
+                  </button>
+                </div>
+                <div id="collapse-three" class="accordion-collapse collapse show" aria-labelledby="heading-three">
+                  <div class="accordion-body">
+                    <form action="{{ route('user.shop-sidebar') }}" method="GET">
+                      <div>
+                        <label for="best_seller">
+                          <input type="checkbox" name="best_seller" value="1" {{ request('best_seller') ? 'checked' : '' }}>
+                          Best Seller
+                        </label>
+                      </div>
+                      <button type="submit" class="btn btn-primary mt-3">Apply</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- New Arrivals Filter -->
+              <div class="accordion-item">
+                <div class="accordion-header" id="heading-four">
+                  <button class="accordion-button py-3" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse-four" aria-expanded="true" aria-controls="collapse-four">
+                    <span class="accordion-title fs-3">New Arrivals</span>
+                  </button>
+                </div>
+                <div id="collapse-four" class="accordion-collapse collapse show" aria-labelledby="heading-four">
+                  <div class="accordion-body">
+                    <a href="#">HYDRA BEAUTY MICRO CRÈME YEUX Illuminating <span class="count">(100)</span></a>
+                    <a href="#">GET-BACK Targeted Body Acne Spray <span class="count">(80)</span></a>
+                    <a href="#">Day & Night Neck Treatment Duo <span class="count">(90)</span></a>
+                    <a href="#">B-Goldi Bright Drops <span class="count">(70)</span></a>
+                    <a href="#">LE GEL COAT Longwear Top Coat <span class="count">(50)</span></a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Reset Filters -->
+              <a href="{{ route('user.shop-sidebar') }}" class="btn-link text-uppercase item-anchor">Reset All Filters</a>
             </div>
-        </div>
-        
+          </div>
         </div>
       </aside>
     </div>
   </div>
 </div>
 
-<section class="newsletter my-5" style="background: url(images/newsletter-image.jpg) no-repeat;">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-md-8 py-5 my-5">
-        <div class="subscribe-header text-center pb-3">
-          <h3 class="section-title text-uppercase">Sign Up for our newsletter</h3>
-        </div>
-        <form action="{{ route('user.shop-sidebar') }}" method="GET">
-          <input type="text" name="search" value="{{ request('search') }}" placeholder="Search products...">
-          <button type="submit">Search</button>
-        </form>
- 
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="instagram my-5 py-5">
-  <div class="container">
-    <h4 class="text-center py-3">Follow us on Instagram</h4>
-    <div class="row d-flex flex-wrap my-3 g-0">
-      <!-- Instagram posts here -->
-    </div>
-  </div>
-</section>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var toastEl = document.getElementById('profileToast');
-    if (toastEl) {
-      setTimeout(() => {
-        toastEl.classList.remove('show');
-        toastEl.remove(); // يختفي بعد كم ثانية
-      }, 2000); // يختفي بعد 4 ثواني
-    }
-  });
-  function addToWishlist(productId, productName, productPrice, productImage) {
-    // الحصول على الـ wishlist من localStorage إذا كانت موجودة أو تهيئتها إذا كانت فارغة
-    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-
-    // التحقق إذا كان المنتج موجود بالفعل في الـ wishlist
-    const productExists = wishlist.some(item => item.productId === productId);
-    if (productExists) {
-        alert('This product is already in your wishlist.');
-        return;
-    }
-
-    // إضافة المنتج إلى الـ wishlist
-    wishlist.push({
-        productId: productId,
-        productName: productName,
-        productPrice: productPrice,
-        productImage: productImage
-    });
-
-    // تخزين الـ wishlist المحدث في localStorage
-    localStorage.setItem('wishlist', JSON.stringify(wishlist));
-
-    // عرض رسالة تأكيد أو يمكن تحديث واجهة المستخدم
-    alert('Product added to your wishlist!');
-          // إعادة تحميل الصفحة لتحديث المحتوى
-          location.reload();
-}
-
-</script>
-
 @include('user.footer')
-

@@ -40,35 +40,42 @@ class ProductController extends Controller
             $products = $products->where('category_id', $request->category_id);
         }
         
-        // Search products by name
-        if ($request->has('search')) {
-            $products = $products->where('name', 'like', '%' . $request->search . '%');
-        }
-    
+        $query = Product::query();
+
+    // فلترة بالكلمة المفتاحية (بحث في الاسم)
+    if ($request->has('search') && $request->search != '') {
+        $query->where('name', 'like', '%' . $request->search . '%');
+    }
+
+    // // فلترة حسب التصنيف
+    // if ($request->has('category_id') && $request->category_id != '') {
+    //     $query->where('category_id', $request->category_id);
+    // }
+
         // Price range filtering
          // إذا كان هناك فلتر للـ price_range
       // إذا كان هناك فلتر للـ price_range
       if ($request->has('price_range')) {
         $priceRange = $request->input('price_range');
-
-        if ($priceRange == '10') {
-            // إذا كانت القيمة أقل من 10
-            $products->where('price', '<', 10.00); // تأكد من استخدام 10.00 بدلاً من 10
-        } elseif ($priceRange == '20-40') {
-            // إذا كانت القيمة بين 20 و 40
-            $products->whereBetween('price', [20.00, 40.00]); // تأكد من استخدام القيم كـ decimals
-        } elseif ($priceRange == '40-50') {
-            // إذا كانت القيمة بين 40 و 50
+    
+        if ($priceRange == '10.00') {
+            // If the price is less than $10
+            $products->where('price', '<', 10.00); 
+        } elseif ($priceRange == '20.00-40.00') {
+            // If the price is between $20 and $40
+            $products->whereBetween('price', [20.00, 40.00]); 
+        } elseif ($priceRange == '40.00-50.00') {
+            // If the price is between $40 and $50
             $products->whereBetween('price', [40.00, 50.00]);
-        } elseif ($priceRange == '50-60') {
-            // إذا كانت القيمة بين 50 و 60
+        } elseif ($priceRange == '50.00-60.00') {
+            // If the price is between $50 and $60
             $products->whereBetween('price', [50.00, 60.00]);
-        } elseif ($priceRange == '60') {
-            // إذا كانت القيمة أكبر من 60
+        } elseif ($priceRange == '60.00') {
+            // If the price is greater than $60
             $products->where('price', '>', 60.00);
         }
     }
-
+    
 
         
         
