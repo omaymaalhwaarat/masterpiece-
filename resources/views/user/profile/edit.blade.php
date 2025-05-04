@@ -84,6 +84,32 @@
         </div>
 
       </div>
+      <hr>
+<h4 class="mt-5">My Orders</h4>
+
+@forelse($orders as $order)
+    <div class="card mb-4">
+        <div class="card-header">
+            Order #{{ $order->id }} - <strong>{{ ucfirst($order->status) }}</strong> - Total: ${{ $order->total }}
+        </div>
+        <div class="card-body">
+            @foreach($order->items as $item)
+                <div class="d-flex align-items-center mb-3">
+                    @if($item->product->images->first())
+                        <img src="{{ asset($item->product->images->first()->image_path) }}" width="60" class="me-3">
+                    @endif
+                    <div>
+                        <h6 class="mb-1">{{ $item->product->name }}</h6>
+                        <p class="mb-0">Qty: {{ $item->quantity }} - ${{ $item->price }}</p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+@empty
+    <p>You haven't placed any orders yet.</p>
+@endforelse
+
     </div>
   </div>
 </section>

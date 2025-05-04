@@ -53,11 +53,27 @@ class ProfileController extends Controller
     // عرض البيانات لتعديلها
     public function edit()
     {
-        $user = auth()->user(); // جلب الملف الشخصي للمستخدم
-        $profile = $user->profile; // جلب بيانات الملف الشخصي
-        return view('user.profile.edit', compact('user','profile'));
+        $user = auth()->user();
+        $orders = $user->orders()->with(['items.product.images'])->get();
+    
+        return view('user.profile.edit', [
+            'profile' => $user->profile,
+            'orders' => $orders
+        ]);
     }
-
+    
+    public function profile()
+    {
+        $user = auth()->user();
+    
+        // جلب الطلبات مع المنتجات
+        $orders = $user->orders()->with(['items.product.images'])->get();
+    
+        return view('user.profile.edit', [
+            'profile' => $user->profile, // أو حسب اسم المتغير
+            
+        ]);
+    }
     // تحديث البيانات الخاصة بالملف الشخصي
     public function update(Request $request)
     {
@@ -83,6 +99,7 @@ class ProfileController extends Controller
 
     }
 
+    
 
 
     // حذف الملف الشخصي

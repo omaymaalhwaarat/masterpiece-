@@ -15,27 +15,41 @@
 
           @foreach($cartItems as $item)
           @php
-              $product = $products->firstWhere('id', $item->product_id); // جلب المنتج من الـ products
-              $productImage = $product->images->first(); // جلب أول صورة من المنتج
-          @endphp
-          
+          $product = $products->firstWhere('id', $item->product_id); // جلب المنتج
+          $productImage = $product && $product->images->isNotEmpty() ? $product->images->first() : null;
+      @endphp
+      
           @if ($product)
               <div class="cart-item border-top border-bottom">
                   <div class="row align-items-center">
                       <div class="col-lg-4 col-md-3">
                           <div class="cart-info d-flex flex-wrap align-items-center">
                               <div class="col-lg-5">
-                                  <div class="card-image">
+                                <div class="card-image">
+                                  @if ($productImage)
                                       <img src="{{ asset($productImage->image_path) }}" alt="{{ $product->name }}" class="img-fluid">
-                                  </div>
+                                  @else
+                                      <img src="{{ asset('default-product.png') }}" alt="Default Image" class="img-fluid">
+                                  @endif
+                              </div>
+                              
                               </div>
                               <div class="col-lg-7">
                                   <div class="card-detail ps-3">
                                       <h5 class="card-title">
                                           <a href="#" class="text-decoration-none">{{ $product->name }}</a>
                                       </h5>
+
                                       <div class="card-price">
-                                          <span class="money">${{ $product->price }}</span>
+                                          @if($product->discount)
+                                          <!-- السعر بعد الخصم -->
+                                          <span class="money text-black me-5"> {{ number_format($product->price - ($product->price * ($product->discount->percentage / 100)), 2) }} JD</span>
+                                          <!-- السعر الأصلي مع الشطب -->
+                                          <del class="text-muted"> {{ number_format($product->price, 2) }} JD</del>
+                                          @else
+                                          <!-- إذا لم يكن هناك خصم، يظهر السعر الأصلي فقط -->
+                                          <span class="text-black money">{{ number_format($product->price, 2) }} JD</span>
+                                          @endif 
                                       </div>
                                   </div>
                               </div>
@@ -65,8 +79,16 @@
                               </div>
                               <div class="col-md-8 text-center">
                                   <div class="total-price">
-                                      <span class="money text-dark" id="total-price-{{ $product->id }}">jd{{ $product->price * $item->quantity }}</span>
-                                  </div>
+                                    @php
+                                    $discountedPrice = $product->discount
+                                        ? $product->price - ($product->price * ($product->discount->percentage / 100))
+                                        : $product->price;
+                                @endphp
+                                
+                                <span class="money text-dark" id="total-price-{{ $product->id }}">
+                                    {{ number_format($discountedPrice * $item->quantity, 2) }} JD
+                                </span>
+                                                                  </div>
                               </div>
                           </div>
                       </div>
@@ -97,35 +119,53 @@
           <div class="total-price pb-5">
             <table cellspacing="0" class="table text-uppercase">
               <tbody>
-                <tr class="subtotal pt-2 pb-2 border-top border-bottom">
+                {{-- <tr class="subtotal pt-2 pb-2 border-top border-bottom">
                   <th>Subtotal</th>
                   <td data-title="Subtotal">
                     <span class="price-amount amount text-dark ps-5">
                       <bdi>
-                        <span class="price-currency-symbol">jd</span>
+                      
                         @php
                           $cartCollection = collect($cartItems);
                         @endphp
-                        {{ number_format($cartCollection->sum(function ($item) use ($products) {
-                          $product = $products->firstWhere('id', $item->product_id);
-                          return $item->quantity * $product->price;
-                        }), 2) }}
+                       {{ number_format($cartCollection->sum(function ($item) use ($products) {
+                        $product = $products->firstWhere('id', $item->product_id);
+                        if (!$product) return 0;
+                        $discountedPrice = $product->discount
+                            ? $product->price - ($product->price * ($product->discount->percentage / 100))
+                            : $product->price;
+                        return $item->quantity * $discountedPrice;
+                    }), 2) }}
+                    
+                          <span class="price-currency-symbol"> JD </span>
                       </bdi>
                     </span>
                   </td>
-                </tr>
-                <tr class="order-total pt-2 pb-2 border-bottom">
+                </tr> --}}
+                <tr class="order-total pt-2 pb-2 border-top border-bottom">
                   <th>Total</th>
                   <td data-title="Total">
                     <span class="price-amount amount text-dark ps-5" id="cart-total">
                       <bdi>
-                        <span class="price-currency-symbol">jd</span>
+                        @php
+                        $cartCollection = collect($cartItems);
+                        @endphp
                         {{ number_format($cartCollection->sum(function ($item) use ($products) {
-                          $product = $products->firstWhere('id', $item->product_id);
-                          return $item->quantity * $product->price;
+                            $product = $products->firstWhere('id', $item->product_id);
+                            if (!$product) return 0;
+                    
+                            // حساب السعر بعد الخصم إن وجد
+                            $price = $product->price;
+                            if ($product->discount) {
+                                $price -= $product->price * ($product->discount->percentage / 100);
+                            }
+                    
+                            return $item->quantity * $price;
                         }), 2) }}
+                        <span class="price-currency-symbol"> JD </span>
                       </bdi>
                     </span>
+                    
                   </td>
                 </tr>
                 
@@ -133,8 +173,8 @@
             </table>
           </div>
           <div class="button-wrap row g-2">
-            <div class="col-md-6"><button class="btn btn-dark text-uppercase btn-rounded-none w-100">Update Cart</button></div>
-            <div class="col-md-6"><button class="btn btn-dark text-uppercase btn-rounded-none w-100">Continue Shopping</button></div>
+            
+            <div class="col-md-12"><a href="{{ route('user.shop-sidebar') }}" class="btn btn-dark text-uppercase btn-rounded-none w-100">Continue Shopping</a></div>
             <div class="col-md-12">
               <a href="{{ route('user.checkout.redirect') }}" class="btn btn-primary text-uppercase btn-rounded-none w-100">
                   Proceed to Checkout

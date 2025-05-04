@@ -223,51 +223,51 @@
         <div class="col-auto">
           <ul class="list-unstyled d-flex m-0 mt-3 mt-xl-0">
             @auth
-            <li>
-              <a href="{{ route('user.wishlist') }}" class="text-uppercase mx-3" id="wishlist-link">
+              <li>
+                <a href="{{ route('user.wishlist') }}" class="text-uppercase mx-3" id="wishlist-link">
                 <svg width="24" height="24" viewBox="0 0 24 24">
                   <use xlink:href="#heart"></use>
                 </svg>
                 <span class="wishlist-count" id="wishlist-count">
                   ({{ $wishlistCount ?? 0 }})
                 </span>
-              </a>
-            </li>
-            
-          
-          
-          
-          
+                </a>
+              </li>
 
-        <li>
-          <a href="{{ route('cart.view') }}" class="text-uppercase mx-3">
-              <svg width="24" height="24" viewBox="0 0 24 24">
+
+
+
+
+
+              <li>
+                <a href="{{ route('cart.view') }}" class="text-uppercase mx-3">
+                <svg width="24" height="24" viewBox="0 0 24 24">
                   <use xlink:href="#cart"></use>
-              </svg>
-              <span class="cart-count">
+                </svg>
+                <span class="cart-count">
                   {{--جلب عدد المنتجات من قاعدة البيانات ن --}}
                   @php
-                      $cartCount = \App\Models\CartItem::where('user_id', auth()->id())->count();
+                  $cartCount = \App\Models\CartItem::where('user_id', auth()->id())->count();
                   @endphp
                   ({{ $cartCount }})
-              </span>
-          </a>
-      </li>
-      
+                </span>
+                </a>
+              </li>
 
-        {{-- التحقق من وجود الملف الشخصي في الرابط
-        بتوجيه المستخدم بشكل صحيح بناءً على حالة الملف الشخصي. --}}
-        @auth
-      <li>
-        <a href="{{ route(auth()->user()->profile ? 'user.profile.edit' : 'user.profile.create') }}">
-        {{-- <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color">
-        <use xlink:href="#user"></use>
-        </svg> --}}
-        {{  auth()->user()->name }}
-        </a>
-      </li>
-    @endauth
-        {{-- ************************************************* --}}
+
+              {{-- التحقق من وجود الملف الشخصي في الرابط
+              بتوجيه المستخدم بشكل صحيح بناءً على حالة الملف الشخصي. --}}
+              @auth
+          <li>
+          <a href="{{ route(auth()->user()->profile ? 'user.profile.edit' : 'user.profile.create') }}">
+          {{-- <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color">
+            <use xlink:href="#user"></use>
+          </svg> --}}
+          {{  auth()->user()->name }}
+          </a>
+          </li>
+        @endauth
+              {{-- ************************************************* --}}
       @endauth
             <li class="search-box">
               <a href="#" class="search-button mx-3">
@@ -283,4 +283,27 @@
 
     </div>
   </nav>
- 
+
+  <script>
+    $(document).ready(function() {
+      // Add to Wishlist click event
+      $('#add-to-wishlist').click(function(e) {
+        e.preventDefault(); // Prevent the default link behavior
+  
+        var productId = $(this).data('product-id'); // Get the product ID dynamically
+  
+        $.ajax({
+          url: '{{ route('user.addToWishlist', ':id') }}'.replace(':id', productId),
+          method: 'GET',
+          success: function(response) {
+            // Update the wishlist count in the navbar
+            $('#wishlist-count').text('(' + response.wishlistCount + ')');
+          },
+          error: function() {
+            alert('There was an error adding the product to your wishlist.');
+          }
+        });
+      });
+    });
+  </script>
+  

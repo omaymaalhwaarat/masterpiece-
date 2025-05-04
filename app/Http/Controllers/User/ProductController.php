@@ -14,86 +14,68 @@ class ProductController extends Controller
     {
         // جلب المنتج مع الفئة والمراجعات والصور المتعلقة به
         $product = Product::with('category', 'discount', 'images', 'reviews.user')->findOrFail($id);
-    
-        // جلب المنتجات المرتبطة بنفس الفئة
-        $relatedProducts = Product::with('images')
-            ->where('category_id', $product->category_id)
-            ->where('id', '!=', $id)
-            ->take(5)
-            ->get();
-    
+        
+        // جلب المنتجات المرتبطة بنفس الفئة مع التصفية (تحديد 5 منتجات فقط)
+       // استخدام paginate بدلاً من get لجلب المنتجات مع التصفح
+$relatedProducts = Product::with('images')
+->where('category_id', $product->category_id)
+->where('id', '!=', $id)
+->paginate(5); // التصفح مع 5 منتجات في الصفحة الواحدة
+
+        
         return view('user.single-product', compact('product', 'relatedProducts'));
     }
-    
-
-
-
-
     public function index(Request $request)
-    {
-        // Fetch categories
-        $categories = Category::all();
-        $products = Product::with('category', 'discount');
-        
-        // Filter by category
-        if ($request->has('category_id')) {
-            $products = $products->where('category_id', $request->category_id);
-        }
-        
-        $query = Product::query();
+{
+    // جلب الفئات
+    $categories = Category::all();
 
-    // فلترة بالكلمة المفتاحية (بحث في الاسم)
+    // جلب المنتجات مع العلاقات
+    $products = Product::with('category', 'discount');
+
+    // تصفية المنتجات بناءً على الفئة المختارة
+    if ($request->has('category_id') && $request->category_id) {
+        $products = $products->where('category_id', $request->category_id);
+    }
+
+    // تصفية المنتجات بناءً على البحث
     if ($request->has('search') && $request->search != '') {
-        $query->where('name', 'like', '%' . $request->search . '%');
+        $products = $products->where('name', 'like', '%' . $request->search . '%');
     }
 
-    // // فلترة حسب التصنيف
-    // if ($request->has('category_id') && $request->category_id != '') {
-    //     $query->where('category_id', $request->category_id);
-    // }
-
-        // Price range filtering
-         // إذا كان هناك فلتر للـ price_range
-      // إذا كان هناك فلتر للـ price_range
-      if ($request->has('price_range')) {
-        $priceRange = $request->input('price_range');
-    
-        if ($priceRange == '10.00') {
-            // If the price is less than $10
-            $products->where('price', '<', 10.00); 
-        } elseif ($priceRange == '20.00-40.00') {
-            // If the price is between $20 and $40
-            $products->whereBetween('price', [20.00, 40.00]); 
-        } elseif ($priceRange == '40.00-50.00') {
-            // If the price is between $40 and $50
-            $products->whereBetween('price', [40.00, 50.00]);
-        } elseif ($priceRange == '50.00-60.00') {
-            // If the price is between $50 and $60
-            $products->whereBetween('price', [50.00, 60.00]);
+    // تصفية المنتجات بناءً على السعر
+    if ($request->has('price_range') && $request->price_range) {
+        $priceRange = $request->price_range;
+        
+        if (strpos($priceRange, '-') !== false) {
+            list($minPrice, $maxPrice) = explode('-', $priceRange);
+            $products = $products->whereBetween('price', [$minPrice, $maxPrice]);
+        } elseif ($priceRange == '10.00') {
+            $products = $products->where('price', '<', 10);
         } elseif ($priceRange == '60.00') {
-            // If the price is greater than $60
-            $products->where('price', '>', 60.00);
+            $products = $products->where('price', '>', 60);
         }
     }
-    
 
-        
-        
-        // Filter by Best Seller
-        if ($request->has('best_seller')) {
-            $products = $products->where('is_best_seller', true); 
+    // فلتر ترتيب المنتجات
+    if ($request->has('filter') && $request->filter) {
+        if ($request->filter == 'price_asc') {
+            $products = $products->orderBy('price', 'asc');
+        } elseif ($request->filter == 'price_desc') {
+            $products = $products->orderBy('price', 'desc');
+        } elseif ($request->filter == 'best_sellers') {
+            $products = $products->withCount('orderItems as sold_count')
+                ->orderByDesc('sold_count');
+        } elseif ($request->filter == 'newest') {
+            $products = $products->orderByDesc('created_at');
         }
-    
-        $products = $products->get();
-    
-        return view('user.shop-sidebar', compact('products', 'categories'));
     }
-    
-    
 
+    // جلب المنتجات مع الترقيم
+    $products = $products->paginate(12);
 
-
-    
+    return view('user.shop-sidebar', compact('products', 'categories'));
+}
     public function storeReview(Request $request, $productId)
     {
         $user = auth()->user();

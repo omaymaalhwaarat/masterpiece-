@@ -18,80 +18,108 @@
     <div class="row flex-md-row-reverse g-5">
       <main class="main-content col-md-9">
         <div class="row py-2">
-          <div class="col-md-3">
-            <span>Showing 1–12 of 55 results</span>
-          </div>
-          <div class="col-md-6">
-            <form action="{{ route('user.shop-sidebar') }}" method="GET">
-              <input class="border-0" type="text" name="search" value="{{ request('search') }}" placeholder="Search products...">
-              <button class="border-0" type="submit">Search</button>
-            </form>
-          </div>
-          <div class="col-md-3">
-            <form action="{{ route('user.shop-sidebar') }}" method="GET">
-              <select name="filter" class="form-select border-0" aria-label="Default select example" onchange="this.form.submit()">
-                <option value="" selected>All</option>
-                <option value="price">Price</option>
-                <option value="best_sellers">Best Sellers</option>
-              </select>
-            </form>
-          </div>
-        </div>
+          <div class="row mb-3 d-flex align-items-center">
+            <div class="col-md-3">
+              <span>Showing 1–12 of 55 results</span>
+            </div>
 
-        <div class="row my-5">
-          @foreach ($products as $product)
+            <div class="col-md-6">
+              <form action="{{ route('user.shop-sidebar') }}" method="GET" class="d-flex align-items-center">
+                <input class="p-2 border-1 flex-grow-1" type="text" name="search" value="{{ request('search') }}"
+                  placeholder="Search products...">
+                <button class="border-1 p-2 ms-2" type="submit">Search</button>
+              </form>
+            </div>
+
+            <div class="col-md-3">
+              <form action="{{ route('user.shop-sidebar') }}" method="GET">
+                <select name="filter" class="form-select border- p-2" aria-label="Default select example"
+                  onchange="this.form.submit()">
+                  <option value="" selected>All</option>
+                  <option value="price">Price</option>
+                  <option value="best_sellers">Best Sellers</option>
+                </select>
+              </form>
+            </div>
+          </div>
+
+
+          <div class="row my-5">
+            @foreach ($products as $product)
             <div class="col-md-4 mb-5 product-item">
               <div class="image-holder position-relative">
                 <a href="{{ route('user.product.show', $product->id) }}">
-                  <img src="{{ asset($product->images->first()->image_path) }}" alt="categories" class="product-image img-fluid" style="border-radius: 5%">
+                  <img src="{{ asset($product->images->first()->image_path) }}" alt="categories"
+                       class="product-image img-fluid" style="border-radius: 5%">
                 </a>
-                <!-- إضافة المنتج إلى الـ Wishlist عبر الرابط في الـ Controller -->
-                <a href="{{ route('user.addToWishlist', $product->id) }}" class="btn-icon btn-wishlist">
+          
+                <a href="{{ route('user.addToWishlist', $product->id) }}" id="add-to-wishlist"
+                   class="btn-icon btn-wishlist" data-product-id="{{ $product->id }}">
                   <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color">
                     <use xlink:href="#heart"></use>
                   </svg>
                 </a>
+          
                 <a href="wishlist.html" class="btn-icon btn-cart">
                   <svg width="24" height="24" viewBox="0 0 24 24" class="svg-color">
                     <use xlink:href="#cart"></use>
                   </svg>
                 </a>
+          
                 <div class="product-content">
                   <h5 class="element-title text-uppercase fs-6 mt-3">
                     <a href="{{ route('user.product.show', $product->id) }}">{{ $product->name }}</a>
                   </h5>
+                  @if($product->discount)
+        <!-- السعر بعد الخصم -->
+        <span class="original-price text-black">JD {{ number_format($product->price - ($product->price * ($product->discount->percentage / 100)), 2) }}</span>
+        <!-- السعر الأصلي مع الشطب -->
+        <del class="text-muted">JD {{ number_format($product->price, 2) }}</del>
+    @else
+        <!-- إذا لم يكن هناك خصم، يظهر السعر الأصلي فقط -->
+        <span class=" text-black">JD {{ number_format($product->price, 2) }}</span>
+    @endif
 
-                  @if($product->discount_price)
-                    <span class="original-price text-decoration-line-through">${{ number_format($product->price, 2) }}</span>
-                    <span class="discounted-price">${{ number_format($product->discount_price, 2) }}</span>
+
+{{--           
+                  @if($product->discount)
+                 
+                    <span class="original-price text-decoration-line-through">
+                        {{ number_format($product->price, 2) }} JD
+                    </span>
+                    <span class="discounted-price">
+                        {{ number_format($discountedPrice, 2) }} JD
+                    </span>
                   @else
-                    <span class="price">${{ number_format($product->price, 2) }}</span>
+                    <span class="price">{{ number_format($product->price, 2) }} JD</span>
                   @endif
+           --}}
                 </div>
               </div>
             </div>
           @endforeach
-        </div>
+          
+          </div>
 
-        <nav aria-label="Page navigation" class="d-flex justify-content-center mt-5">
-          <ul class="pagination">
-            <li class="page-item">
-              <a class="page-link" href="#" aria-label="Previous">
-                <i class="icon icon-arrow-left"></i>
-              </a>
-            </li>
-            <li class="page-item active" aria-current="page"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"><a class="page-link" href="#">4</a></li>
-            <li class="page-item"><a class="page-link" href="#">5</a></li>
-            <li class="page-item">
-              <a class="page-link" href="#" aria-label="Next">
-                <i class="icon icon-arrow-right"></i>
-              </a>
-            </li>
-          </ul>
-        </nav>
+          <nav aria-label="Page navigation" class="d-flex justify-content-center mt-5">
+            <ul class="pagination">
+              <li class="page-item">
+                <a class="page-link" href="#" aria-label="Previous">
+                  <i class="icon icon-arrow-left"></i>
+                </a>
+              </li>
+              <li class="page-item active" aria-current="page"><a class="page-link" href="#">1</a></li>
+              <li class="page-item"><a class="page-link" href="#">2</a></li>
+              <li class="page-item"><a class="page-link" href="#">3</a></li>
+              <li class="page-item"><a class="page-link" href="#">4</a></li>
+              <li class="page-item"><a class="page-link" href="#">5</a></li>
+              <li class="page-item">
+                <a class="page-link" href="#" aria-label="Next">
+                  <i class="icon icon-arrow-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
       </main>
 
       <aside class="col-md-3">
@@ -101,10 +129,11 @@
             <ul class="list-unstyled">
               <li><a href="#" class="item-anchor">All</a></li>
               @foreach ($categories as $category)
-                <li>
-                  <a href="{{ route('user.shop-sidebar', ['category_id' => $category->id]) }}" class="item-anchor">{{ $category->name }}</a>
-                </li>
-              @endforeach
+          <li>
+          <a href="{{ route('user.shop-sidebar', ['category_id' => $category->id]) }}"
+            class="item-anchor">{{ $category->name }}</a>
+          </li>
+        @endforeach
             </ul>
           </div>
 
@@ -125,11 +154,16 @@
                     <form action="{{ route('user.shop-sidebar') }}" method="GET">
                       <div class="mb-3">
                         <label for="price_range" class="form-label">Select Price Range</label>
-                        <select name="price_range" class="form-select" aria-label="Price Range" onchange="this.form.submit()">
-                          <option value="10.00" {{ request('price_range') == '10.00' ? 'selected' : '' }}>&lt; $10</option>
-                          <option value="20.00-40.00" {{ request('price_range') == '20.00-40.00' ? 'selected' : '' }}>$20 - $40</option>
-                          <option value="40.00-50.00" {{ request('price_range') == '40.00-50.00' ? 'selected' : '' }}>$40 - $50</option>
-                          <option value="50.00-60.00" {{ request('price_range') == '50.00-60.00' ? 'selected' : '' }}>$50 - $60</option>
+                        <select name="price_range" class="form-select" aria-label="Price Range"
+                          onchange="this.form.submit()">
+                          <option value="10.00" {{ request('price_range') == '10.00' ? 'selected' : '' }}>&lt; $10
+                          </option>
+                          <option value="20.00-40.00" {{ request('price_range') == '20.00-40.00' ? 'selected' : '' }}>$20
+                            - $40</option>
+                          <option value="40.00-50.00" {{ request('price_range') == '40.00-50.00' ? 'selected' : '' }}>$40
+                            - $50</option>
+                          <option value="50.00-60.00" {{ request('price_range') == '50.00-60.00' ? 'selected' : '' }}>$50
+                            - $60</option>
                           <option value="60.00" {{ request('price_range') == '60' ? 'selected' : '' }}>&gt; $60</option>
                         </select>
                       </div>
@@ -181,7 +215,8 @@
               </div>
 
               <!-- Reset Filters -->
-              <a href="{{ route('user.shop-sidebar') }}" class="btn-link text-uppercase item-anchor">Reset All Filters</a>
+              <a href="{{ route('user.shop-sidebar') }}" class="btn-link text-uppercase item-anchor">Reset All
+                Filters</a>
             </div>
           </div>
         </div>
@@ -191,3 +226,30 @@
 </div>
 
 @include('user.footer')
+
+<script>
+
+    $(document).ready(function() {
+      $('#add-to-wishlist').click(function (e) {
+        e.preventDefault(); // Prevent the default link behavior
+
+        var productId = $(this).data('product-id'); // Get the product ID dynamically
+
+        $.ajax({
+          url: '{{ route('user.addToWishlist', ':id') }}'.replace(':id', productId),
+          method: 'GET',
+          success: function (response) {
+            // Assuming the response includes the updated wishlist count
+            $('#wishlist-count').text('(' + response.wishlistCount + ')');
+          },
+          error: function () {
+            alert('There was an error adding the product to your wishlist.');
+          }
+        });
+      });
+  });
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
